@@ -13,14 +13,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install Bazel
+      - name: Install pinned Bazel 8.5.0
         run: |
-          sudo apt-get update
-          sudo apt-get install -y curl gnupg openjdk-17-jdk
-          curl -fsSL https://releases.bazel.build/bazel-release.pub.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/bazel-archive-keyring.gpg >/dev/null
-          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/bazel-archive-keyring.gpg] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
-          sudo apt-get update
-          sudo apt-get install -y bazel
+          curl -fsSL -o /tmp/bazel https://github.com/bazelbuild/bazel/releases/download/8.5.0/bazel-8.5.0-linux-x86_64
+          sudo install -m 0755 /tmp/bazel /usr/local/bin/bazel
       - name: Check Bazel
         run: bazel version
       - name: Run AllDifferent regression tests
