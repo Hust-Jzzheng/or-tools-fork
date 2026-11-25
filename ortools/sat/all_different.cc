@@ -398,7 +398,7 @@ bool AllDifferentConstraint::Propagate() {
 
         value_visited_[value] = true;
         const bool has_augmenting_path = MakeAugmentingPath(old_variable);
-        CHECK(!has_augmenting_path);
+        DCHECK(!has_augmenting_path);
         DCHECK_EQ(variable_to_value_[old_variable], -1);  // No reassignment.
 
         std::vector<Literal>* reason = trail_->GetEmptyVectorToStoreReason();
