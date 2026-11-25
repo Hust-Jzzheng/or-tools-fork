@@ -82,4 +82,20 @@ jobs:
             --repo-root "$GITHUB_WORKSPACE" \
             --fz-bin "$GITHUB_WORKSPACE/bazel-bin/ortools/flatzinc/fz" \
             --results-dir /tmp/minizinc2026-smoke \
-            --threads 12 --time-limit 30 --seed 1 --limit 1
+            --threads 12 --time-limit 30 --seed 1 \
+            --instances nonogram/easy_01.json --limit 1
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          result_path = Path("/tmp/minizinc2026-smoke/nonogram__easy_01.json/result.json")
+          result = json.loads(result_path.read_text())
+          if result["status"] not in {"FEASIBLE", "OPTIMAL"} or not result["has_solution"]:
+              stdout = Path(result["stdout_log"]).read_text(errors="replace")
+              stderr = Path(result["stderr_log"]).read_text(errors="replace")
+              raise SystemExit(
+                  f"MiniZinc smoke did not find a solution: {result['status']}\n"
+                  f"--- stdout ---\n{stdout}\n--- stderr ---\n{stderr}"
+              )
+          print(f"MiniZinc 2026 smoke solved: {result['instance_id']} in "
+                f"{result['wall_time_seconds']}s")
+          PY
