@@ -15,9 +15,9 @@ jobs:
           python-version: "3.12"
       - name: Install pinned Bazel 8.5.0
         run: |
-          curl -fsSL -o /tmp/bazel https://github.com/bazelbuild/bazel/releases/download/8.5.0/bazel-8.5.0-linux-x86_64
-          sudo install -m 0755 /tmp/bazel /usr/local/bin/bazel
+          curl -fsSL -o /tmp/bazel-bin https://github.com/bazelbuild/bazel/releases/download/8.5.0/bazel-8.5.0-linux-x86_64
+          sudo install -m 0755 /tmp/bazel-bin /usr/local/bin/bazel
       - name: Check Bazel
         run: bazel version
       - name: Run AllDifferent regression tests
-        run: bazel --output_user_root=/tmp/bazel test --config=ci //ortools/sat:all_different_test
+        run: bazel --output_user_root=/tmp/bazel-root test --config=ci //ortools/sat:all_different_test
