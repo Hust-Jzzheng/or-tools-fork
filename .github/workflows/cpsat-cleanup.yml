@@ -10,18 +10,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: "17"
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-      - uses: bazel-contrib/setup-bazel@0.15.0
+      - name: Install CMake build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build
+      - name: Configure CMake with tests
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_DEPS=ON \
+            -DBUILD_TESTING=ON \
+            -DBUILD_CXX=ON \
+            -DBUILD_PYTHON=OFF \
+            -DBUILD_JAVA=OFF \
+            -DBUILD_DOTNET=OFF
+      - name: Build focused SAT regression tests
+        run: |
+          cmake --build build --parallel 2 --target \
+            sat_sat_solver_clause_cleanup_test \
+            sat_sat_inprocessing_test \
+            sat_clause_test \
+            sat_cp_model_solver_test
       - name: Run focused SAT regression tests
         run: |
-          bazel test --config=ci \
-            //ortools/sat:sat_solver_clause_cleanup_test \
-            //ortools/sat:sat_inprocessing_test \
-            //ortools/sat:clause_test \
-            //ortools/sat:cp_model_solver_test
+          ctest --test-dir build --output-on-failure \
+            -R 'cxx_sat_sat_solver_clause_cleanup_test|cxx_sat_sat_inprocessing_test|cxx_sat_clause_test|cxx_sat_cp_model_solver_test'
