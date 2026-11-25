@@ -505,6 +505,9 @@ bool NoCyclePropagator::IncrementalPropagate(
 }
 
 bool NoCyclePropagator::Propagate() {
+  // TODO(user): Incrementally update SCCs from touched_nodes_ instead of
+  // recomputing them on the compressed graph.
+  //
   // Compress to nodes with active outgoing arcs. A node without an outgoing
   // active arc cannot belong to a directed cycle, so it can be omitted from
   // the SCC graph. This avoids scanning all num_nodes_ on sparse graphs.
