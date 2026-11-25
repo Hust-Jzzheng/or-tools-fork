@@ -1,4 +1,4 @@
-name: CP-SAT AllDifferent focused test
+name: CP-SAT kernel regression and MiniZinc smoke
 
 on:
   push:
@@ -54,7 +54,7 @@ jobs:
       - name: Install build dependencies
         run: |
           apt-get update
-          DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential ca-certificates curl git unzip
+          DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential ca-certificates curl git python3 unzip
       - name: Install pinned Bazel 8.5.0
         run: |
           curl -fsSL -o /tmp/bazel-bin https://github.com/bazelbuild/bazel/releases/download/8.5.0/bazel-8.5.0-linux-x86_64
