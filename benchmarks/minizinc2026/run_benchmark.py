@@ -3,6 +3,7 @@
 from __future__ import annotations
 import argparse
 import csv
+import hashlib
 import json
 import os
 import re
@@ -15,6 +16,14 @@ from typing import Any
 
 SOLVER_ID = "org.minizinc.or-tools-cpsat-enhanced"
 STAT_RE = re.compile(r"%%%mzn-stat:\s*([^=\s]+)=(.*)")
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as f:
+        for block in iter(lambda: f.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
 
 
 def parse_stats(output: str) -> dict[str, str]:
@@ -66,7 +75,8 @@ def terminate_process_group(proc: subprocess.Popen[str]) -> None:
 
 
 def run_one(item: dict[str, str], dataset_root: Path, minizinc: str,
-            minizinc_version: str, env: dict[str, str], output_dir: Path,
+            minizinc_version: str, dataset_commit: str,
+            solver_binary_sha256: str, env: dict[str, str], output_dir: Path,
             threads: int, time_limit: int, seed: int, resume: bool) -> dict[str, Any]:
     instance_id = item["id"]
     safe_id = instance_id.replace("/", "__").replace("\\", "__")
@@ -79,8 +89,16 @@ def run_one(item: dict[str, str], dataset_root: Path, minizinc: str,
     if resume and result_path.exists():
         try:
             previous = json.loads(result_path.read_text(encoding="utf-8"))
-            if previous.get("complete") is True:
-                print(f"[SKIP] {instance_id}: completed result exists", flush=True)
+            if (
+                previous.get("complete") is True
+                and previous.get("dataset_commit") == dataset_commit
+                and previous.get("solver_binary_sha256") == solver_binary_sha256
+                and previous.get("threads") == threads
+                and previous.get("time_limit_seconds") == time_limit
+                and previous.get("seed") == seed
+                and previous.get("minizinc_version") == minizinc_version
+            ):
+                print(f"[SKIP] {instance_id}: matching completed result exists", flush=True)
                 return previous
         except (OSError, json.JSONDecodeError):
             pass
@@ -122,6 +140,8 @@ def run_one(item: dict[str, str], dataset_root: Path, minizinc: str,
         "complete": True, "instance_id": instance_id, "model": item["model"],
         "data": item["data"], "threads": threads, "time_limit_seconds": time_limit,
         "seed": seed, "minizinc_version": minizinc_version,
+        "dataset_commit": dataset_commit,
+        "solver_binary_sha256": solver_binary_sha256,
         "wall_time_seconds": round(wall_time, 3),
         "return_code": return_code, "timed_out": timed_out, "status": status,
         "has_solution": has_solution, "solver_stats": stats, "command": command,
@@ -138,7 +158,8 @@ def write_summary(output_dir: Path, results: list[dict[str, Any]]) -> None:
         "threads", "time_limit_seconds", "seed", "return_code", "timed_out",
         "flatTime", "solveTime", "objective", "objectiveBound",
         "boolVariables", "nodes", "failures", "propagations",
-        "model", "data", "minizinc_version",
+        "model", "data", "minizinc_version", "dataset_commit",
+        "solver_binary_sha256",
     ]
     with (output_dir / "summary.csv").open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
@@ -157,6 +178,7 @@ def main() -> int:
     parser.add_argument("--minizinc", default="minizinc")
     parser.add_argument("--expected-minizinc-version", default="2.9.7")
     parser.add_argument("--allow-version-mismatch", action="store_true")
+    parser.add_argument("--allow-dataset-mismatch", action="store_true")
     parser.add_argument("--results-dir", required=True, type=Path)
     parser.add_argument("--threads", type=int, default=12)
     parser.add_argument("--time-limit", type=int, default=1800,
@@ -176,6 +198,20 @@ def main() -> int:
 
     if not dataset_root.is_dir():
         parser.error(f"dataset root does not exist: {dataset_root}")
+    expected_dataset_commit = manifest["dataset"]["commit"]
+    dataset_git = subprocess.run(
+        ["git", "-C", str(dataset_root), "rev-parse", "HEAD"],
+        text=True, capture_output=True, check=False,
+    )
+    actual_dataset_commit = dataset_git.stdout.strip()
+    if dataset_git.returncode != 0:
+        parser.error(f"dataset root must be a Git checkout at {expected_dataset_commit}")
+    if (actual_dataset_commit != expected_dataset_commit
+            and not args.allow_dataset_mismatch):
+        parser.error(
+            f"expected MiniZinc archive commit {expected_dataset_commit}, "
+            f"got {actual_dataset_commit}; use --allow-dataset-mismatch only for smoke tests"
+        )
     if not fz_bin.is_file():
         parser.error(f"FlatZinc binary does not exist: {fz_bin}")
     mznlib = repo_root / "ortools" / "flatzinc" / "mznlib"
@@ -194,6 +230,7 @@ def main() -> int:
     if args.limit > 0:
         selected = selected[:args.limit]
 
+    solver_binary_sha256 = sha256_file(fz_bin)
     solver_dir = results_dir / "solver-config"
     solver_dir.mkdir(parents=True, exist_ok=True)
     solver_config = {
@@ -243,7 +280,8 @@ def main() -> int:
     print(
         f"Dataset commit: {manifest['dataset']['commit']}\n"
         f"Selected instances: {len(selected)}\n"
-        f"Solver: {fz_bin}\nMiniZinc: {minizinc_version}\n"
+        f"Solver: {fz_bin}\nBinary SHA256: {solver_binary_sha256}\n"
+        f"MiniZinc: {minizinc_version}\n"
         f"Threads: {args.threads}; wall limit: {args.time_limit}s; seed: {args.seed}",
         flush=True,
     )
@@ -255,7 +293,8 @@ def main() -> int:
     results: list[dict[str, Any]] = []
     for item in selected:
         result = run_one(
-            item, dataset_root, args.minizinc, minizinc_version, env, results_dir,
+            item, dataset_root, args.minizinc, minizinc_version,
+            expected_dataset_commit, solver_binary_sha256, env, results_dir,
             args.threads, args.time_limit, args.seed, not args.no_resume,
         )
         results.append(result)

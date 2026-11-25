@@ -36,5 +36,10 @@ jobs:
           PY
       - name: Check Bazel
         run: bazel version
-      - name: Run AllDifferent regression tests
-        run: bazel --output_user_root=/tmp/bazel-root test --config=ci //ortools/sat:all_different_test
+      - name: Run SAT and CP-SAT regression tests
+        run: |
+          bazel --output_user_root=/tmp/bazel-root test --config=ci \
+            //ortools/sat:all_different_test \
+            //ortools/sat:clause_test \
+            //ortools/sat:sat_inprocessing_test \
+            //ortools/sat:cp_model_solver_test
