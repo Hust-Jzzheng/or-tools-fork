@@ -1,0 +1,35 @@
+name: CP-SAT AllDifferent focused test
+
+on:
+  push:
+    branches:
+      - cpsat-enhanced-v9.15
+  pull_request:
+    branches:
+      - ortools-v9.15-base
+    paths:
+      - "ortools/sat/all_different.cc"
+      - "ortools/sat/all_different.h"
+      - "ortools/sat/all_different_test.cc"
+      - ".github/workflows/cpsat-enhanced.yml"
+
+jobs:
+  all_different_test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Bazel
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl gnupg openjdk-17-jdk
+          curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/bazel.gpg >/dev/null
+          echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
+          sudo apt-get update
+          sudo apt-get install -y bazel
+      - name: Check Bazel
+        run: bazel version
+      - name: Run AllDifferent regression tests
+        run: bazel --output_user_root=/tmp/bazel test --config=ci //ortools/sat:all_different_test
