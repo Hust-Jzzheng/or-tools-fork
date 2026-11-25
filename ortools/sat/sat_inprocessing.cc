@@ -605,6 +605,8 @@ bool Inprocessing::SubsumeAndStrenghtenRound(bool log_info) {
 
   // Literals which can be removed, and the reason why.
   std::vector<std::pair<Literal, SatClause*>> candidates_for_removal;
+  // Reused scratch space for trying the least-connected literals first.
+  absl::InlinedVector<Literal, 6> ordered_literals;
   for (int clause_index = 0; clause_index < clauses.size(); ++clause_index) {
     SatClause* clause = clauses[clause_index];
     DCHECK(!SomeLiteralAreAssigned(trail_->Assignment(), clause->AsSpan()));
@@ -641,7 +643,14 @@ bool Inprocessing::SubsumeAndStrenghtenRound(bool log_info) {
     bool removed = false;
     candidates_for_removal.clear();
     const uint64_t mask = ~signature;
-    for (const Literal l : clause->AsSpan()) {
+    ordered_literals.assign(clause->AsSpan().begin(), clause->AsSpan().end());
+    // If a subsumer is present, it must be in one of these watcher lists.
+    // Visiting the smallest lists first makes early subsumption exits cheaper.
+    std::stable_sort(ordered_literals.begin(), ordered_literals.end(),
+                     [&](Literal a, Literal b) {
+                       return one_watcher[a].size() < one_watcher[b].size();
+                     });
+    for (const Literal l : ordered_literals) {
       num_inspected_signatures += one_watcher[l].size();
       for (const int i : one_watcher[l]) {
         if ((mask & signatures[i]) != 0) continue;
@@ -758,10 +767,8 @@ bool Inprocessing::SubsumeAndStrenghtenRound(bool log_info) {
         }
       }
 
-      // TODO(user): We could/should sort the literal in this clause by
-      // using literals that appear in a small number of clauses first so that
-      // we maximize the chance of early abort in the critical loops above.
-      //
+      // The positive watcher scan above already visits the least-connected
+      // literals first to improve early subsumption exits.
       // TODO(user): We could also move the watched literal first so we always
       // skip it.
       signatures[clause_index] = signature;
