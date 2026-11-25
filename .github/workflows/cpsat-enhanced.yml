@@ -47,7 +47,10 @@ jobs:
             //ortools/sat:all_different_test \
             //ortools/sat:clause_test \
             //ortools/sat:sat_inprocessing_test \
-            //ortools/sat:cp_model_solver_test
+            //ortools/sat:cp_model_solver_test \
+            //ortools/sat:disjunctive_test \
+            //ortools/sat:cumulative_test \
+            //ortools/sat:scheduling_helpers_test
 
   minizinc_2026_smoke:
     runs-on: ubuntu-latest
