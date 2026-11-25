@@ -293,11 +293,13 @@ TEST(NoCyclePropagatorTest, CountAllSolutions) {
       }
     }
   }
+  // Keep only four nodes active but use a much larger node index space. This
+  // exercises the sparse active-node SCC path.
+  num_nodes = 1000;
   model.TakeOwnership(
       new NoCyclePropagator(num_nodes, tails, heads, literals, &model));
 
-  // Graph is small enough.
-  CHECK_EQ(num_nodes, 4);
+  CHECK_EQ(num_nodes, 1000);
   CHECK_EQ(tails.size(), 12);
 
   // Counts solution with brute-force algo.
