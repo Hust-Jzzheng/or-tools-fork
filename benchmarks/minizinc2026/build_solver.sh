@@ -24,7 +24,7 @@ if [[ ! -e "${WORKTREE}/.git" ]]; then
 fi
 (
   cd "${WORKTREE}"
-  bazel build --config=opt //ortools/flatzinc:fz
+  bazel build --compilation_mode=opt //ortools/flatzinc:fz
   cp bazel-bin/ortools/flatzinc/fz "${BIN_DIR}/fz-${SAFE_REF}"
 )
 echo "Built: ${BIN_DIR}/fz-${SAFE_REF}"

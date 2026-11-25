@@ -22,7 +22,7 @@ git fetch --tags origin
 bash benchmarks/minizinc2026/build_both.sh
 ```
 
-The script creates detached Git worktrees and builds `//ortools/flatzinc:fz` with `--config=opt`. It places both binaries in `build/minizinc2026/bin/`.
+The script creates detached Git worktrees and builds `//ortools/flatzinc:fz` with `--compilation_mode=opt`. It places both binaries in `build/minizinc2026/bin/`.
 
 ## Run baseline and enhanced
 

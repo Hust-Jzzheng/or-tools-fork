@@ -61,7 +61,7 @@ jobs:
           install -m 0755 /tmp/bazel-bin /usr/local/bin/bazel
           bazel version
       - name: Build FlatZinc CP-SAT
-        run: bazel build --config=opt //ortools/flatzinc:fz
+        run: bazel build --compilation_mode=opt //ortools/flatzinc:fz
       - name: Fetch pinned MiniZinc 2026 archive
         run: |
           git clone --filter=blob:none --no-checkout https://github.com/MiniZinc/mzn-challenge.git /tmp/mzn-challenge
