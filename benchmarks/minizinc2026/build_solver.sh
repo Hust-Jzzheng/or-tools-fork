@@ -2,7 +2,7 @@
 set -euo pipefail
 REF="${1:-cpsat-enhanced-v9.15}"
 ROOT="$(git rev-parse --show-toplevel)"
-OUT="${2:-${ROOT}/build/minizinc2026}"
+OUT="${2:-${ROOT}/../or-tools-fork-build/minizinc2026}"
 SAFE_REF="${REF//\//_}"
 WORKTREE="${OUT}/worktrees/${SAFE_REF}"
 BIN_DIR="${OUT}/bin"

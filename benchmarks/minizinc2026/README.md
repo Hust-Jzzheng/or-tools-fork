@@ -22,22 +22,22 @@ git fetch --tags origin
 bash benchmarks/minizinc2026/build_both.sh
 ```
 
-The script creates detached Git worktrees and builds `//ortools/flatzinc:fz` with `--compilation_mode=opt`. It places both binaries in `build/minizinc2026/bin/`.
+The script creates detached Git worktrees and builds `//ortools/flatzinc:fz` with `--compilation_mode=opt`. It places both binaries in `../or-tools-fork-build/minizinc2026/bin/`.
 
 ## Run baseline and enhanced
 
 ```bash
 python3 benchmarks/minizinc2026/run_benchmark.py \
   --dataset-root ../mzn-challenge \
-  --repo-root build/minizinc2026/worktrees/v9.15 \
-  --fz-bin build/minizinc2026/bin/fz-v9.15 \
+  --repo-root ../or-tools-fork-build/minizinc2026/worktrees/v9.15 \
+  --fz-bin ../or-tools-fork-build/minizinc2026/bin/fz-v9.15 \
   --results-dir results/minizinc2026-baseline \
   --threads 12 --time-limit 1800 --seed 1
 
 python3 benchmarks/minizinc2026/run_benchmark.py \
   --dataset-root ../mzn-challenge \
-  --repo-root build/minizinc2026/worktrees/cpsat-enhanced-v9.15 \
-  --fz-bin build/minizinc2026/bin/fz-cpsat-enhanced-v9.15 \
+  --repo-root ../or-tools-fork-build/minizinc2026/worktrees/cpsat-enhanced-v9.15 \
+  --fz-bin ../or-tools-fork-build/minizinc2026/bin/fz-cpsat-enhanced-v9.15 \
   --results-dir results/minizinc2026-enhanced \
   --threads 12 --time-limit 1800 --seed 1
 ```
