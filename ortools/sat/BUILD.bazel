@@ -1589,7 +1589,7 @@ cc_library(
     srcs = [
         "sat_solver.cc",
     ],
-    hdrs = ["sat_solver.h"],
+    hdrs = ["sat_solver.h", "sat_solver_clause_cleanup.h"],
     deps = [
         ":clause",
         ":enforcement",
@@ -1623,6 +1623,16 @@ cc_library(
         "@abseil-cpp//absl/strings",
         "@abseil-cpp//absl/strings:str_format",
         "@abseil-cpp//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "sat_solver_clause_cleanup_test",
+    size = "small",
+    srcs = ["sat_solver_clause_cleanup_test.cc"],
+    deps = [
+        ":sat_solver",
+        "//ortools/base:gmock_main",
     ],
 )
 
