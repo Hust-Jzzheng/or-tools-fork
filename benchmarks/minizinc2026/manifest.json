@@ -1,0 +1,517 @@
+{
+  "schema_version": 1,
+  "dataset": {
+    "repository": "https://github.com/MiniZinc/mzn-challenge",
+    "ref": "develop",
+    "commit": "7639931e89b6b8bba48ef129d52fba866bc36702",
+    "year": 2026,
+    "model_count": 20,
+    "instance_count": 100,
+    "data_files": {
+      "dzn": 70,
+      "json": 30
+    }
+  },
+  "instances": [
+    {
+      "id": "atp-stage2/instance1-stage2.dzn",
+      "model": "2026/atp-stage2/stage2_disjunctive_search.mzn",
+      "data": "2026/atp-stage2/instance1-stage2.dzn"
+    },
+    {
+      "id": "atp-stage2/instance2-stage2.dzn",
+      "model": "2026/atp-stage2/stage2_disjunctive_search.mzn",
+      "data": "2026/atp-stage2/instance2-stage2.dzn"
+    },
+    {
+      "id": "atp-stage2/instance5-stage2.dzn",
+      "model": "2026/atp-stage2/stage2_disjunctive_search.mzn",
+      "data": "2026/atp-stage2/instance5-stage2.dzn"
+    },
+    {
+      "id": "atp-stage2/instance6-stage2.dzn",
+      "model": "2026/atp-stage2/stage2_disjunctive_search.mzn",
+      "data": "2026/atp-stage2/instance6-stage2.dzn"
+    },
+    {
+      "id": "atp-stage2/instance9-stage2.dzn",
+      "model": "2026/atp-stage2/stage2_disjunctive_search.mzn",
+      "data": "2026/atp-stage2/instance9-stage2.dzn"
+    },
+    {
+      "id": "community-detection-2021/rnd_n100_e1000_s50_d30_c8_p70.json",
+      "model": "2026/community-detection-2021/community-detection.mzn",
+      "data": "2026/community-detection-2021/rnd_n100_e1000_s50_d30_c8_p70.json"
+    },
+    {
+      "id": "community-detection-2021/rnd_n100_e50_s10_d5_c9_p70.json",
+      "model": "2026/community-detection-2021/community-detection.mzn",
+      "data": "2026/community-detection-2021/rnd_n100_e50_s10_d5_c9_p70.json"
+    },
+    {
+      "id": "community-detection-2021/rnd_n100_e50_s50_d30_c10_p50.json",
+      "model": "2026/community-detection-2021/community-detection.mzn",
+      "data": "2026/community-detection-2021/rnd_n100_e50_s50_d30_c10_p50.json"
+    },
+    {
+      "id": "community-detection-2021/rnd_n100_e5000_s100_d70_c4_p90.json",
+      "model": "2026/community-detection-2021/community-detection.mzn",
+      "data": "2026/community-detection-2021/rnd_n100_e5000_s100_d70_c4_p90.json"
+    },
+    {
+      "id": "community-detection-2021/rnd_n50_e100_s10_d5_c7_p90.json",
+      "model": "2026/community-detection-2021/community-detection.mzn",
+      "data": "2026/community-detection-2021/rnd_n50_e100_s10_d5_c7_p90.json"
+    },
+    {
+      "id": "filters/ar_4_2.dzn",
+      "model": "2026/filters/filter.mzn",
+      "data": "2026/filters/ar_4_2.dzn"
+    },
+    {
+      "id": "filters/dct_3_3.dzn",
+      "model": "2026/filters/filter.mzn",
+      "data": "2026/filters/dct_3_3.dzn"
+    },
+    {
+      "id": "filters/dct_4_3.dzn",
+      "model": "2026/filters/filter.mzn",
+      "data": "2026/filters/dct_4_3.dzn"
+    },
+    {
+      "id": "filters/ewf_1_3.dzn",
+      "model": "2026/filters/filter.mzn",
+      "data": "2026/filters/ewf_1_3.dzn"
+    },
+    {
+      "id": "filters/fir_4_2.dzn",
+      "model": "2026/filters/filter.mzn",
+      "data": "2026/filters/fir_4_2.dzn"
+    },
+    {
+      "id": "gbac/csplib12-gbac.dzn",
+      "model": "2026/gbac/gbac.mzn",
+      "data": "2026/gbac/csplib12-gbac.dzn"
+    },
+    {
+      "id": "gbac/reduced_UD1-gbac.dzn",
+      "model": "2026/gbac/gbac.mzn",
+      "data": "2026/gbac/reduced_UD1-gbac.dzn"
+    },
+    {
+      "id": "gbac/reduced_UD9-gbac.dzn",
+      "model": "2026/gbac/gbac.mzn",
+      "data": "2026/gbac/reduced_UD9-gbac.dzn"
+    },
+    {
+      "id": "gbac/UD1-gbac.dzn",
+      "model": "2026/gbac/gbac.mzn",
+      "data": "2026/gbac/UD1-gbac.dzn"
+    },
+    {
+      "id": "gbac/UD6-gbac.dzn",
+      "model": "2026/gbac/gbac.mzn",
+      "data": "2026/gbac/UD6-gbac.dzn"
+    },
+    {
+      "id": "gcc-benchmark/instance-i24.json",
+      "model": "2026/gcc-benchmark/roomsgcc.mzn",
+      "data": "2026/gcc-benchmark/instance-i24.json"
+    },
+    {
+      "id": "gcc-benchmark/instance-l35_1.json",
+      "model": "2026/gcc-benchmark/roomsgcc.mzn",
+      "data": "2026/gcc-benchmark/instance-l35_1.json"
+    },
+    {
+      "id": "gcc-benchmark/instance-l42_3.json",
+      "model": "2026/gcc-benchmark/roomsgcc.mzn",
+      "data": "2026/gcc-benchmark/instance-l42_3.json"
+    },
+    {
+      "id": "gcc-benchmark/instance-l42_6.json",
+      "model": "2026/gcc-benchmark/roomsgcc.mzn",
+      "data": "2026/gcc-benchmark/instance-l42_6.json"
+    },
+    {
+      "id": "gcc-benchmark/toy-instance.json",
+      "model": "2026/gcc-benchmark/roomsgcc.mzn",
+      "data": "2026/gcc-benchmark/toy-instance.json"
+    },
+    {
+      "id": "kitchen/kitchen_b1.instance.json",
+      "model": "2026/kitchen/kitchen.mzn",
+      "data": "2026/kitchen/kitchen_b1.instance.json"
+    },
+    {
+      "id": "kitchen/larger.instance.json",
+      "model": "2026/kitchen/kitchen.mzn",
+      "data": "2026/kitchen/larger.instance.json"
+    },
+    {
+      "id": "kitchen/linear.instance.json",
+      "model": "2026/kitchen/kitchen.mzn",
+      "data": "2026/kitchen/linear.instance.json"
+    },
+    {
+      "id": "kitchen/real_kitchen_b1.instance.json",
+      "model": "2026/kitchen/kitchen.mzn",
+      "data": "2026/kitchen/real_kitchen_b1.instance.json"
+    },
+    {
+      "id": "kitchen/tall_complex.instance.json",
+      "model": "2026/kitchen/kitchen.mzn",
+      "data": "2026/kitchen/tall_complex.instance.json"
+    },
+    {
+      "id": "multiple-constant-multiplication/CHEN99_28B.json",
+      "model": "2026/multiple-constant-multiplication/mcm_min.mzn",
+      "data": "2026/multiple-constant-multiplication/CHEN99_28B.json"
+    },
+    {
+      "id": "multiple-constant-multiplication/HIGHPASS_15.json",
+      "model": "2026/multiple-constant-multiplication/mcm_min.mzn",
+      "data": "2026/multiple-constant-multiplication/HIGHPASS_15.json"
+    },
+    {
+      "id": "multiple-constant-multiplication/JOHANSSON08_28.json",
+      "model": "2026/multiple-constant-multiplication/mcm_min.mzn",
+      "data": "2026/multiple-constant-multiplication/JOHANSSON08_28.json"
+    },
+    {
+      "id": "multiple-constant-multiplication/LOWPASS_9.json",
+      "model": "2026/multiple-constant-multiplication/mcm_min.mzn",
+      "data": "2026/multiple-constant-multiplication/LOWPASS_9.json"
+    },
+    {
+      "id": "multiple-constant-multiplication/XU07_28.json",
+      "model": "2026/multiple-constant-multiplication/mcm_min.mzn",
+      "data": "2026/multiple-constant-multiplication/XU07_28.json"
+    },
+    {
+      "id": "nonogram/easy_01.json",
+      "model": "2026/nonogram/non.mzn",
+      "data": "2026/nonogram/easy_01.json"
+    },
+    {
+      "id": "nonogram/hard_01.json",
+      "model": "2026/nonogram/non.mzn",
+      "data": "2026/nonogram/hard_01.json"
+    },
+    {
+      "id": "nonogram/hard_02.json",
+      "model": "2026/nonogram/non.mzn",
+      "data": "2026/nonogram/hard_02.json"
+    },
+    {
+      "id": "nonogram/hard_03.json",
+      "model": "2026/nonogram/non.mzn",
+      "data": "2026/nonogram/hard_03.json"
+    },
+    {
+      "id": "nonogram/medium_05.json",
+      "model": "2026/nonogram/non.mzn",
+      "data": "2026/nonogram/medium_05.json"
+    },
+    {
+      "id": "nside/EASY_1000_100.dzn",
+      "model": "2026/nside/full.mzn",
+      "data": "2026/nside/EASY_1000_100.dzn"
+    },
+    {
+      "id": "nside/EASY_2000_500.dzn",
+      "model": "2026/nside/full.mzn",
+      "data": "2026/nside/EASY_2000_500.dzn"
+    },
+    {
+      "id": "nside/HARD_1000_100.dzn",
+      "model": "2026/nside/full.mzn",
+      "data": "2026/nside/HARD_1000_100.dzn"
+    },
+    {
+      "id": "nside/MEDIUM_2000_500.dzn",
+      "model": "2026/nside/full.mzn",
+      "data": "2026/nside/MEDIUM_2000_500.dzn"
+    },
+    {
+      "id": "nside/MEDIUM_5_3.dzn",
+      "model": "2026/nside/full.mzn",
+      "data": "2026/nside/MEDIUM_5_3.dzn"
+    },
+    {
+      "id": "orthorio/challenge_01.dzn",
+      "model": "2026/orthorio/orthorio.mzn",
+      "data": "2026/orthorio/challenge_01.dzn"
+    },
+    {
+      "id": "orthorio/challenge_03.dzn",
+      "model": "2026/orthorio/orthorio.mzn",
+      "data": "2026/orthorio/challenge_03.dzn"
+    },
+    {
+      "id": "orthorio/challenge_04.dzn",
+      "model": "2026/orthorio/orthorio.mzn",
+      "data": "2026/orthorio/challenge_04.dzn"
+    },
+    {
+      "id": "orthorio/challenge_12.dzn",
+      "model": "2026/orthorio/orthorio.mzn",
+      "data": "2026/orthorio/challenge_12.dzn"
+    },
+    {
+      "id": "orthorio/challenge_13.dzn",
+      "model": "2026/orthorio/orthorio.mzn",
+      "data": "2026/orthorio/challenge_13.dzn"
+    },
+    {
+      "id": "rect-euler/3venn_combined_model_input.json",
+      "model": "2026/rect-euler/RectEuler_max_clique.mzn",
+      "data": "2026/rect-euler/3venn_combined_model_input.json"
+    },
+    {
+      "id": "rect-euler/british_isles_combined_model_input.json",
+      "model": "2026/rect-euler/RectEuler_max_clique.mzn",
+      "data": "2026/rect-euler/british_isles_combined_model_input.json"
+    },
+    {
+      "id": "rect-euler/EU_combined_model_input.json",
+      "model": "2026/rect-euler/RectEuler_max_clique.mzn",
+      "data": "2026/rect-euler/EU_combined_model_input.json"
+    },
+    {
+      "id": "rect-euler/harrypotter_combined_model_input.json",
+      "model": "2026/rect-euler/RectEuler_max_clique.mzn",
+      "data": "2026/rect-euler/harrypotter_combined_model_input.json"
+    },
+    {
+      "id": "rect-euler/Vitamins_combined_model_input.json",
+      "model": "2026/rect-euler/RectEuler_max_clique.mzn",
+      "data": "2026/rect-euler/Vitamins_combined_model_input.json"
+    },
+    {
+      "id": "saeling/instance__j0005_m001_w01_g2x2_s018.dzn",
+      "model": "2026/saeling/encoding_challenge_v2_0.mzn",
+      "data": "2026/saeling/instance__j0005_m001_w01_g2x2_s018.dzn"
+    },
+    {
+      "id": "saeling/instance__j0010_m003_w01_g2x2_s018.dzn",
+      "model": "2026/saeling/encoding_challenge_v2_0.mzn",
+      "data": "2026/saeling/instance__j0010_m003_w01_g2x2_s018.dzn"
+    },
+    {
+      "id": "saeling/instance__j0010_m008_w02_g2x2_s021.dzn",
+      "model": "2026/saeling/encoding_challenge_v2_0.mzn",
+      "data": "2026/saeling/instance__j0010_m008_w02_g2x2_s021.dzn"
+    },
+    {
+      "id": "saeling/instance__j0050_m003_w01_g5x5_s022.dzn",
+      "model": "2026/saeling/encoding_challenge_v2_0.mzn",
+      "data": "2026/saeling/instance__j0050_m003_w01_g5x5_s022.dzn"
+    },
+    {
+      "id": "saeling/instance__j0050_m016_w04_g5x5_s027.dzn",
+      "model": "2026/saeling/encoding_challenge_v2_0.mzn",
+      "data": "2026/saeling/instance__j0050_m016_w04_g5x5_s027.dzn"
+    },
+    {
+      "id": "sdn-chain/d10n780-7.dzn",
+      "model": "2026/sdn-chain/model.mzn",
+      "data": "2026/sdn-chain/d10n780-7.dzn"
+    },
+    {
+      "id": "sdn-chain/d15n180-1.dzn",
+      "model": "2026/sdn-chain/model.mzn",
+      "data": "2026/sdn-chain/d15n180-1.dzn"
+    },
+    {
+      "id": "sdn-chain/d26n600-5.dzn",
+      "model": "2026/sdn-chain/model.mzn",
+      "data": "2026/sdn-chain/d26n600-5.dzn"
+    },
+    {
+      "id": "sdn-chain/d28n600-6.dzn",
+      "model": "2026/sdn-chain/model.mzn",
+      "data": "2026/sdn-chain/d28n600-6.dzn"
+    },
+    {
+      "id": "sdn-chain/d30n600-7.dzn",
+      "model": "2026/sdn-chain/model.mzn",
+      "data": "2026/sdn-chain/d30n600-7.dzn"
+    },
+    {
+      "id": "spot5/1403.dzn",
+      "model": "2026/spot5/spot5.mzn",
+      "data": "2026/spot5/1403.dzn"
+    },
+    {
+      "id": "spot5/1407.dzn",
+      "model": "2026/spot5/spot5.mzn",
+      "data": "2026/spot5/1407.dzn"
+    },
+    {
+      "id": "spot5/1504.dzn",
+      "model": "2026/spot5/spot5.mzn",
+      "data": "2026/spot5/1504.dzn"
+    },
+    {
+      "id": "spot5/408.dzn",
+      "model": "2026/spot5/spot5.mzn",
+      "data": "2026/spot5/408.dzn"
+    },
+    {
+      "id": "spot5/505.dzn",
+      "model": "2026/spot5/spot5.mzn",
+      "data": "2026/spot5/505.dzn"
+    },
+    {
+      "id": "surface-based-tsp/berlin52.dzn",
+      "model": "2026/surface-based-tsp/dual_surface_tsp_cp_combined.mzn",
+      "data": "2026/surface-based-tsp/berlin52.dzn"
+    },
+    {
+      "id": "surface-based-tsp/burma14.dzn",
+      "model": "2026/surface-based-tsp/dual_surface_tsp_cp_combined.mzn",
+      "data": "2026/surface-based-tsp/burma14.dzn"
+    },
+    {
+      "id": "surface-based-tsp/ch130.dzn",
+      "model": "2026/surface-based-tsp/dual_surface_tsp_cp_combined.mzn",
+      "data": "2026/surface-based-tsp/ch130.dzn"
+    },
+    {
+      "id": "surface-based-tsp/st70.dzn",
+      "model": "2026/surface-based-tsp/dual_surface_tsp_cp_combined.mzn",
+      "data": "2026/surface-based-tsp/st70.dzn"
+    },
+    {
+      "id": "surface-based-tsp/ulysses16.dzn",
+      "model": "2026/surface-based-tsp/dual_surface_tsp_cp_combined.mzn",
+      "data": "2026/surface-based-tsp/ulysses16.dzn"
+    },
+    {
+      "id": "tdtsp/inst_10_1_20.dzn",
+      "model": "2026/tdtsp/tdtsp.mzn",
+      "data": "2026/tdtsp/inst_10_1_20.dzn"
+    },
+    {
+      "id": "tdtsp/inst_10_51_10.dzn",
+      "model": "2026/tdtsp/tdtsp.mzn",
+      "data": "2026/tdtsp/inst_10_51_10.dzn"
+    },
+    {
+      "id": "tdtsp/inst_10_53_00.dzn",
+      "model": "2026/tdtsp/tdtsp.mzn",
+      "data": "2026/tdtsp/inst_10_53_00.dzn"
+    },
+    {
+      "id": "tdtsp/inst_10_58_20.dzn",
+      "model": "2026/tdtsp/tdtsp.mzn",
+      "data": "2026/tdtsp/inst_10_58_20.dzn"
+    },
+    {
+      "id": "tdtsp/inst_20_56_00.dzn",
+      "model": "2026/tdtsp/tdtsp.mzn",
+      "data": "2026/tdtsp/inst_20_56_00.dzn"
+    },
+    {
+      "id": "vrplc/vrplc10_5_15_s4.dzn",
+      "model": "2026/vrplc/vrplc_service.mzn",
+      "data": "2026/vrplc/vrplc10_5_15_s4.dzn"
+    },
+    {
+      "id": "vrplc/vrplc11_5_20_s2.dzn",
+      "model": "2026/vrplc/vrplc_service.mzn",
+      "data": "2026/vrplc/vrplc11_5_20_s2.dzn"
+    },
+    {
+      "id": "vrplc/vrplc13_11_20_s3.dzn",
+      "model": "2026/vrplc/vrplc_service.mzn",
+      "data": "2026/vrplc/vrplc13_11_20_s3.dzn"
+    },
+    {
+      "id": "vrplc/vrplc9_5_20_s2.dzn",
+      "model": "2026/vrplc/vrplc_service.mzn",
+      "data": "2026/vrplc/vrplc9_5_20_s2.dzn"
+    },
+    {
+      "id": "vrplc/vrplc9_8_15_s3.dzn",
+      "model": "2026/vrplc/vrplc_service.mzn",
+      "data": "2026/vrplc/vrplc9_8_15_s3.dzn"
+    },
+    {
+      "id": "warehouse/olal41.dzn",
+      "model": "2026/warehouse/ms-cflp-ci.mzn",
+      "data": "2026/warehouse/olal41.dzn"
+    },
+    {
+      "id": "warehouse/olil4.dzn",
+      "model": "2026/warehouse/ms-cflp-ci.mzn",
+      "data": "2026/warehouse/olil4.dzn"
+    },
+    {
+      "id": "warehouse/oly20.dzn",
+      "model": "2026/warehouse/ms-cflp-ci.mzn",
+      "data": "2026/warehouse/oly20.dzn"
+    },
+    {
+      "id": "warehouse/wlp02.dzn",
+      "model": "2026/warehouse/ms-cflp-ci.mzn",
+      "data": "2026/warehouse/wlp02.dzn"
+    },
+    {
+      "id": "warehouse/wlp22.dzn",
+      "model": "2026/warehouse/ms-cflp-ci.mzn",
+      "data": "2026/warehouse/wlp22.dzn"
+    },
+    {
+      "id": "workforce-alloc/instance_174.dzn",
+      "model": "2026/workforce-alloc/scheduling_model.mzn",
+      "data": "2026/workforce-alloc/instance_174.dzn"
+    },
+    {
+      "id": "workforce-alloc/instance_19.dzn",
+      "model": "2026/workforce-alloc/scheduling_model.mzn",
+      "data": "2026/workforce-alloc/instance_19.dzn"
+    },
+    {
+      "id": "workforce-alloc/instance_202.dzn",
+      "model": "2026/workforce-alloc/scheduling_model.mzn",
+      "data": "2026/workforce-alloc/instance_202.dzn"
+    },
+    {
+      "id": "workforce-alloc/instance_24_56.dzn",
+      "model": "2026/workforce-alloc/scheduling_model.mzn",
+      "data": "2026/workforce-alloc/instance_24_56.dzn"
+    },
+    {
+      "id": "workforce-alloc/instance_71.dzn",
+      "model": "2026/workforce-alloc/scheduling_model.mzn",
+      "data": "2026/workforce-alloc/instance_71.dzn"
+    },
+    {
+      "id": "zephyrus-2016/12__10__10__3.dzn",
+      "model": "2026/zephyrus-2016/zephyrus.mzn",
+      "data": "2026/zephyrus-2016/12__10__10__3.dzn"
+    },
+    {
+      "id": "zephyrus-2016/12__6__10__3.dzn",
+      "model": "2026/zephyrus-2016/zephyrus.mzn",
+      "data": "2026/zephyrus-2016/12__6__10__3.dzn"
+    },
+    {
+      "id": "zephyrus-2016/14__10__10__3.dzn",
+      "model": "2026/zephyrus-2016/zephyrus.mzn",
+      "data": "2026/zephyrus-2016/14__10__10__3.dzn"
+    },
+    {
+      "id": "zephyrus-2016/14__6__10__3.dzn",
+      "model": "2026/zephyrus-2016/zephyrus.mzn",
+      "data": "2026/zephyrus-2016/14__6__10__3.dzn"
+    },
+    {
+      "id": "zephyrus-2016/14__8__8__3.dzn",
+      "model": "2026/zephyrus-2016/zephyrus.mzn",
+      "data": "2026/zephyrus-2016/14__8__8__3.dzn"
+    }
+  ]
+}
