@@ -13,6 +13,8 @@ git -C ../mzn-challenge checkout 7639931e89b6b8bba48ef129d52fba866bc36702
 
 Use MiniZinc **2.9.7**, matching the 2026 challenge toolchain. The official challenge runs 100 instances and its published PAR/OPEN execution profile uses 8 cores; this harness deliberately uses the requested 12 workers and 1800 seconds instead.
 
+See [MODEL_PROFILE.md](MODEL_PROFILE.md) for a source-level inventory of the 20 models and the global constraints that should guide the next propagator work.
+
 ## Build both binaries
 
 Use Bazel **8.5.0** for the OR-Tools 9.15 dependency set. Bazel 9.x removes the legacy `CcInfo` symbol used by the pinned `rules_go` dependency, so do not use the latest Bazel with this tag without updating dependencies.
