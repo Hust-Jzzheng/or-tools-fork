@@ -110,9 +110,10 @@ def run_one(item: dict[str, str], dataset_root: Path, minizinc: str,
 
     # MiniZinc -t is milliseconds; -p maps to OR-Tools FlatZinc --threads.
     command = [
-        minizinc, "--solver", SOLVER_ID, "-s",
-        "-p", str(threads), "-r", str(seed), "-t", str(time_limit * 1000),
-        str(model_path), str(data_path),
+        minizinc, "--solver", SOLVER_ID,
+        "-i", "--output-mode", "dzn", "--output-objective",
+        "-s", "-p", str(threads), "-r", str(seed),
+        "-t", str(time_limit * 1000), str(model_path), str(data_path),
     ]
     print(f"[RUN] {instance_id} | threads={threads} | wall_limit={time_limit}s", flush=True)
     start = time.monotonic()

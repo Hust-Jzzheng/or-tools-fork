@@ -42,7 +42,7 @@ python3 benchmarks/minizinc2026/run_benchmark.py \
   --threads 12 --time-limit 1800 --seed 1
 ```
 
-For a quick smoke test, add `--limit 3`. To rerun an existing result directory, add `--no-resume`. The script runs instances sequentially, uses 12 CP-SAT workers per instance, and enforces the 1800-second outer wall-clock limit **including MiniZinc flattening**. It also passes the same time limit to the solver internally.
+For a quick smoke test, add `--limit 3`. To rerun an existing result directory, add `--no-resume`. The script runs instances sequentially using the 2026 PAR-style invocation (`-i --output-mode dzn --output-objective -p 12`), with 12 CP-SAT workers per instance. The 1800-second outer wall-clock limit includes MiniZinc flattening; the same limit is also passed to the solver internally.
 
 Each instance gets `stdout.log`, `stderr.log`, and `result.json`; the aggregate `summary.csv` is rewritten after each instance. Compare baseline and enhanced using the same CPU, memory limit, OS, MiniZinc version, seed, and dataset commit.
 
@@ -51,3 +51,18 @@ Each instance gets `stdout.log`, `stderr.log`, and `result.json`; the aggregate 
 The MiniZinc 2026 archive is not a single `.mzn` file: each of the 20 models is paired with five data files. The manifest preserves those pairs. Do not compare only solved count; also compare objective quality, proof status, wall time, and per-instance regressions. The runner records raw logs so parsing can be improved without rerunning expensive instances.
 
 The harness does not claim a performance gain by itself. The gain must be measured after the modified solver passes correctness and compilation tests.
+
+## Compare two result directories
+
+```bash
+python3 benchmarks/minizinc2026/compare_results.py \
+  --baseline results/minizinc2026-baseline/summary.csv \
+  --enhanced results/minizinc2026-enhanced/summary.csv \
+  --output results/minizinc2026-comparison.csv
+```
+
+The comparison checks that the dataset commit, MiniZinc version, thread count,
+time limit, and seed match. It reports terminal/feasible/proven counts, PAR-2
+scores, geometric-mean speedup on jointly completed instances, and per-instance
+status/time/objective/bound differences. It does not assume whether a model is
+minimization or maximization when comparing raw objective values.
