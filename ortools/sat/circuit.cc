@@ -421,6 +421,7 @@ NoCyclePropagator::NoCyclePropagator(int num_nodes, absl::Span<const int> tails,
 
   graph_.resize(num_nodes);
   graph_literals_.resize(num_nodes);
+  node_to_active_index_.assign(num_nodes_, -1);
 
   const int num_arcs = tails.size();
   absl::flat_hash_map<LiteralIndex, int> literal_to_watch_index;
@@ -432,6 +433,7 @@ NoCyclePropagator::NoCyclePropagator(int num_nodes, absl::Span<const int> tails,
     if (assignment_.LiteralIsFalse(literal)) continue;
     if (assignment_.LiteralIsTrue(literal)) {
       // Fixed arc. It will never be removed.
+      if (graph_[tail].empty()) active_nodes_set_.insert(tail);
       graph_[tail].push_back(head);
       graph_literals_[tail].push_back(literal);
       continue;
@@ -476,8 +478,13 @@ void NoCyclePropagator::SetLevel(int level) {
 
   // Backtrack.
   for (int i = level_ends_[level]; i < touched_nodes_.size(); ++i) {
-    graph_literals_[touched_nodes_[i]].pop_back();
-    graph_[touched_nodes_[i]].pop_back();
+    const int tail = touched_nodes_[i];
+    graph_literals_[tail].pop_back();
+    graph_[tail].pop_back();
+    if (graph_[tail].empty()) {
+      active_nodes_set_.erase(tail);
+      node_to_active_index_[tail] = -1;
+    }
   }
   touched_nodes_.resize(level_ends_[level]);
   level_ends_.resize(level);
@@ -488,6 +495,7 @@ bool NoCyclePropagator::IncrementalPropagate(
   for (const int w : watch_indices) {
     const Literal literal = watch_index_to_literal_[w];
     for (const auto& [tail, head] : watch_index_to_arcs_[w]) {
+      if (graph_[tail].empty()) active_nodes_set_.insert(tail);
       graph_[tail].push_back(head);
       graph_literals_[tail].push_back(literal);
       touched_nodes_.push_back(tail);
@@ -496,34 +504,46 @@ bool NoCyclePropagator::IncrementalPropagate(
   return Propagate();
 }
 
-// TODO(user): only explore node with newly added arcs.
-//
-// TODO(user): We could easily re-index the graph so that only nodes with arcs
-// are used. Because right now we are in O(num_nodes) even if the graph is
-// empty.
 bool NoCyclePropagator::Propagate() {
-  // The graph should be up to date when this is called thanks to
-  // IncrementalPropagate(). We just do a SCC on the graph.
+  // Compress to nodes with active outgoing arcs. A node without an outgoing
+  // active arc cannot belong to a directed cycle, so it can be omitted from
+  // the SCC graph. This avoids scanning all num_nodes_ on sparse graphs.
+  active_nodes_.assign(active_nodes_set_.begin(), active_nodes_set_.end());
+  for (int i = 0; i < active_nodes_.size(); ++i) {
+    node_to_active_index_[active_nodes_[i]] = i;
+  }
+
+  if (active_graph_.size() < active_nodes_.size()) {
+    active_graph_.resize(active_nodes_.size());
+  }
+  for (int i = 0; i < active_nodes_.size(); ++i) {
+    active_graph_[i].clear();
+    const int tail = active_nodes_[i];
+    for (const int head : graph_[tail]) {
+      const int active_head = node_to_active_index_[head];
+      if (active_head != -1) active_graph_[i].push_back(active_head);
+    }
+  }
+
   components_.clear();
-  FindStronglyConnectedComponents(num_nodes_, graph_, &components_);
+  ssc_.FindStronglyConnectedComponents(active_nodes_.size(), active_graph_,
+                                       &components_);
 
   for (const std::vector<int>& compo : components_) {
     if (compo.size() <= 1) continue;
 
-    // We collect all arc from this compo.
-    //
-    // TODO(user): We could be more efficient here, but this is only executed on
-    // conflicts. We should at least make sure we return a single cycle even
-    // though if this is called often enough, we shouldn't have a lot more than
-    // this.
+    // Components contain compressed indices; map them back to original nodes
+    // when building the conflict reason.
     absl::flat_hash_set<int> nodes(compo.begin(), compo.end());
     std::vector<Literal>* conflict = trail_->MutableConflict();
     conflict->clear();
-    for (const int tail : compo) {
+    for (const int active_tail : compo) {
+      const int tail = active_nodes_[active_tail];
       const int degree = graph_[tail].size();
       CHECK_EQ(degree, graph_literals_[tail].size());
       for (int i = 0; i < degree; ++i) {
-        if (nodes.contains(graph_[tail][i])) {
+        const int active_head = node_to_active_index_[graph_[tail][i]];
+        if (nodes.contains(active_head)) {
           conflict->push_back(graph_literals_[tail][i].Negated());
         }
       }
