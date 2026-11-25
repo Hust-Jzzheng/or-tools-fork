@@ -7,7 +7,7 @@ The archive has 20 MiniZinc models and 100 model/data pairs. This profile is a
 simple token count in the 20 source `.mzn` files; it is **not** a count of the
 constraints after MiniZinc flattening or OR-Tools presolve.
 
-## Global-constraint tokens observed
+## Selected global-constraint and array-function tokens observed
 
 | Token | Source occurrences | Models containing token |
 |---|---:|---:|
@@ -52,7 +52,7 @@ constraints after MiniZinc flattening or OR-Tools presolve.
 
 ## Consequences for kernel priorities
 
-1. **Scheduling first:** disjunctive and cumulative appear in five of the 20 models combined (with overlap excluded, four? Actually disjunctive is in three models and cumulative in two). The overload checker, edge-finding, theta-tree maintenance, and cumulative energy propagation deserve early attention.
+1. **Scheduling first:** disjunctive appears in three models and cumulative in two; together they cover five distinct models. The overload checker, edge-finding, theta-tree maintenance, and cumulative energy propagation deserve early attention.
 2. **2D packing:** diffn appears in filters and rect-euler. Inspect the no-overlap-2D helper and its energetic reasoning.
 3. **Routing/graph:** circuit, subcircuit, and inverse appear in atp-stage2, vrplc, orthorio, and tdtsp. Circuit propagation and presolve canonicalization are relevant.
 4. **Extensional constraints:** table appears in orthorio and spot5; regular appears in nonogram.
