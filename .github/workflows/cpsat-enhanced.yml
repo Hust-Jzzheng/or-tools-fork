@@ -43,3 +43,34 @@ jobs:
             //ortools/sat:clause_test \
             //ortools/sat:sat_inprocessing_test \
             //ortools/sat:cp_model_solver_test
+
+  minizinc_2026_smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: minizinc/mznc2026:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential ca-certificates curl git unzip
+      - name: Install pinned Bazel 8.5.0
+        run: |
+          curl -fsSL -o /tmp/bazel-bin https://github.com/bazelbuild/bazel/releases/download/8.5.0/bazel-8.5.0-linux-x86_64
+          install -m 0755 /tmp/bazel-bin /usr/local/bin/bazel
+          bazel version
+      - name: Build FlatZinc CP-SAT
+        run: bazel build --config=opt //ortools/flatzinc:fz
+      - name: Fetch pinned MiniZinc 2026 archive
+        run: |
+          git clone --filter=blob:none --no-checkout https://github.com/MiniZinc/mzn-challenge.git /tmp/mzn-challenge
+          git -C /tmp/mzn-challenge checkout 7639931e89b6b8bba48ef129d52fba866bc36702
+      - name: Run one 12-worker smoke instance
+        run: |
+          python3 benchmarks/minizinc2026/run_benchmark.py \
+            --dataset-root /tmp/mzn-challenge \
+            --repo-root "$GITHUB_WORKSPACE" \
+            --fz-bin "$GITHUB_WORKSPACE/bazel-bin/ortools/flatzinc/fz" \
+            --results-dir /tmp/minizinc2026-smoke \
+            --threads 12 --time-limit 30 --seed 1 --limit 1
