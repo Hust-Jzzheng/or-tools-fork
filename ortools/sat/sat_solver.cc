@@ -12,6 +12,7 @@
 // limitations under the License.
 
 #include "ortools/sat/sat_solver.h"
+#include "ortools/sat/sat_solver_clause_cleanup.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -3051,27 +3052,12 @@ void SatSolver::CleanClauseDatabaseIfNeeded() {
   const int num_protected_clauses =
       clauses_propagator_->num_removable_clauses() - entries.size();
 
-  if (parameters_->clause_cleanup_ordering() == SatParameters::CLAUSE_LBD) {
-    // Order the clauses by decreasing LBD and then increasing activity.
-    std::sort(entries.begin(), entries.end(),
-              [](const Entry& a, const Entry& b) {
-                if (a.second.lbd == b.second.lbd) {
-                  return a.second.activity < b.second.activity;
-                }
-                return a.second.lbd > b.second.lbd;
-              });
-  } else {
-    // Order the clauses by increasing activity and then decreasing LBD.
-    std::sort(entries.begin(), entries.end(),
-              [](const Entry& a, const Entry& b) {
-                if (a.second.activity == b.second.activity) {
-                  return a.second.lbd > b.second.lbd;
-                }
-                return a.second.activity < b.second.activity;
-              });
-  }
+  const bool lbd_ordering =
+      parameters_->clause_cleanup_ordering() == SatParameters::CLAUSE_LBD;
 
-  // The clause we want to keep are at the end of the vector.
+  // The clause cleanup only needs the deletion boundary. The helper selects
+  // the clauses to delete in average linear time and keeps the full boundary
+  // tie group, as the previous sort-and-expand implementation did.
   int num_kept_clauses =
       (parameters_->clause_cleanup_target() > 0)
           ? std::min(static_cast<int>(entries.size()),
@@ -3079,20 +3065,10 @@ void SatSolver::CleanClauseDatabaseIfNeeded() {
           : static_cast<int>(parameters_->clause_cleanup_ratio() *
                              static_cast<double>(entries.size()));
 
-  int num_deleted_clauses = entries.size() - num_kept_clauses;
-
-  // Tricky: Because the order of the clauses_info iteration is NOT
-  // deterministic (pointer keys), we also keep all the clauses which have the
-  // same LBD and activity as the last one so the behavior is deterministic.
-  if (num_kept_clauses > 0) {
-    while (num_deleted_clauses > 0) {
-      const ClauseInfo& a = entries[num_deleted_clauses].second;
-      const ClauseInfo& b = entries[num_deleted_clauses - 1].second;
-      if (a.activity != b.activity || a.lbd != b.lbd) break;
-      --num_deleted_clauses;
-      ++num_kept_clauses;
-    }
-  }
+  int num_deleted_clauses = internal::SelectLearnedClausesToDelete(
+      &entries, num_kept_clauses, lbd_ordering);
+  num_kept_clauses =
+      static_cast<int>(entries.size()) - num_deleted_clauses;
   if (num_deleted_clauses > 0) {
     entries.resize(num_deleted_clauses);
     for (const Entry& entry : entries) {
