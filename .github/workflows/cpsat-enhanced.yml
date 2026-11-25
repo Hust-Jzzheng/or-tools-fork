@@ -4,14 +4,6 @@ on:
   push:
     branches:
       - cpsat-enhanced-v9.15
-  pull_request:
-    branches:
-      - ortools-v9.15-base
-    paths:
-      - "ortools/sat/all_different.cc"
-      - "ortools/sat/all_different.h"
-      - "ortools/sat/all_different_test.cc"
-      - ".github/workflows/cpsat-enhanced.yml"
 
 jobs:
   all_different_test:
@@ -25,8 +17,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y curl gnupg openjdk-17-jdk
-          curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/bazel.gpg >/dev/null
-          echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
+          curl -fsSL https://releases.bazel.build/bazel-release.pub.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/bazel-archive-keyring.gpg >/dev/null
+          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/bazel-archive-keyring.gpg] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
           sudo apt-get update
           sudo apt-get install -y bazel
       - name: Check Bazel
