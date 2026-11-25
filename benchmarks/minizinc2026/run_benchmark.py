@@ -66,8 +66,8 @@ def terminate_process_group(proc: subprocess.Popen[str]) -> None:
 
 
 def run_one(item: dict[str, str], dataset_root: Path, minizinc: str,
-            env: dict[str, str], output_dir: Path, threads: int,
-            time_limit: int, seed: int, resume: bool) -> dict[str, Any]:
+            minizinc_version: str, env: dict[str, str], output_dir: Path,
+            threads: int, time_limit: int, seed: int, resume: bool) -> dict[str, Any]:
     instance_id = item["id"]
     safe_id = instance_id.replace("/", "__").replace("\\", "__")
     instance_dir = output_dir / safe_id
@@ -121,7 +121,8 @@ def run_one(item: dict[str, str], dataset_root: Path, minizinc: str,
     result: dict[str, Any] = {
         "complete": True, "instance_id": instance_id, "model": item["model"],
         "data": item["data"], "threads": threads, "time_limit_seconds": time_limit,
-        "seed": seed, "wall_time_seconds": round(wall_time, 3),
+        "seed": seed, "minizinc_version": minizinc_version,
+        "wall_time_seconds": round(wall_time, 3),
         "return_code": return_code, "timed_out": timed_out, "status": status,
         "has_solution": has_solution, "solver_stats": stats, "command": command,
         "stdout_log": str(stdout_path), "stderr_log": str(stderr_path),
@@ -135,8 +136,9 @@ def write_summary(output_dir: Path, results: list[dict[str, Any]]) -> None:
     fields = [
         "instance_id", "status", "has_solution", "wall_time_seconds",
         "threads", "time_limit_seconds", "seed", "return_code", "timed_out",
-        "flatTime", "solveTime", "nodes", "failures", "propagations",
-        "model", "data",
+        "flatTime", "solveTime", "objective", "objectiveBound",
+        "boolVariables", "nodes", "failures", "propagations",
+        "model", "data", "minizinc_version",
     ]
     with (output_dir / "summary.csv").open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
@@ -153,6 +155,8 @@ def main() -> int:
     parser.add_argument("--repo-root", required=True, type=Path)
     parser.add_argument("--fz-bin", required=True, type=Path)
     parser.add_argument("--minizinc", default="minizinc")
+    parser.add_argument("--expected-minizinc-version", default="2.9.7")
+    parser.add_argument("--allow-version-mismatch", action="store_true")
     parser.add_argument("--results-dir", required=True, type=Path)
     parser.add_argument("--threads", type=int, default=12)
     parser.add_argument("--time-limit", type=int, default=1800,
@@ -213,6 +217,20 @@ def main() -> int:
     old_solver_path = env.get("MZN_SOLVER_PATH", "")
     env["MZN_SOLVER_PATH"] = str(solver_dir) + (os.pathsep + old_solver_path if old_solver_path else "")
 
+    version_check = subprocess.run(
+        [args.minizinc, "--version"], cwd=dataset_root, env=env,
+        text=True, capture_output=True, check=False,
+    )
+    minizinc_version = (version_check.stdout + version_check.stderr).strip()
+    if version_check.returncode != 0:
+        parser.error(f"could not execute MiniZinc: {minizinc_version}")
+    if (args.expected_minizinc_version not in minizinc_version
+            and not args.allow_version_mismatch):
+        parser.error(
+            f"expected MiniZinc {args.expected_minizinc_version}, got: {minizinc_version}; "
+            "use --allow-version-mismatch only for non-comparable smoke tests"
+        )
+
     check = subprocess.run(
         [args.minizinc, "--solvers"], cwd=dataset_root, env=env,
         text=True, capture_output=True, check=False,
@@ -225,7 +243,8 @@ def main() -> int:
     print(
         f"Dataset commit: {manifest['dataset']['commit']}\n"
         f"Selected instances: {len(selected)}\n"
-        f"Solver: {fz_bin}\nThreads: {args.threads}; wall limit: {args.time_limit}s; seed: {args.seed}",
+        f"Solver: {fz_bin}\nMiniZinc: {minizinc_version}\n"
+        f"Threads: {args.threads}; wall limit: {args.time_limit}s; seed: {args.seed}",
         flush=True,
     )
     if args.dry_run:
@@ -236,7 +255,7 @@ def main() -> int:
     results: list[dict[str, Any]] = []
     for item in selected:
         result = run_one(
-            item, dataset_root, args.minizinc, env, results_dir,
+            item, dataset_root, args.minizinc, minizinc_version, env, results_dir,
             args.threads, args.time_limit, args.seed, not args.no_resume,
         )
         results.append(result)

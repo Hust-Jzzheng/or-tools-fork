@@ -17,6 +17,23 @@ jobs:
         run: |
           curl -fsSL -o /tmp/bazel-bin https://github.com/bazelbuild/bazel/releases/download/8.5.0/bazel-8.5.0-linux-x86_64
           sudo install -m 0755 /tmp/bazel-bin /usr/local/bin/bazel
+      - name: Validate MiniZinc benchmark harness
+        run: |
+          python3 -m py_compile benchmarks/minizinc2026/run_benchmark.py
+          bash -n benchmarks/minizinc2026/build_solver.sh
+          bash -n benchmarks/minizinc2026/build_both.sh
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          manifest = json.loads(Path("benchmarks/minizinc2026/manifest.json").read_text())
+          assert manifest["dataset"]["model_count"] == 20
+          assert manifest["dataset"]["instance_count"] == 100
+          assert len(manifest["instances"]) == 100
+          assert manifest["dataset"]["data_files"] == {"dzn": 70, "json": 30}
+          assert len({item["id"] for item in manifest["instances"]}) == 100
+          assert len({item["model"] for item in manifest["instances"]}) == 20
+          print("MiniZinc 2026 manifest validated: 20 models / 100 instances")
+          PY
       - name: Check Bazel
         run: bazel version
       - name: Run AllDifferent regression tests
