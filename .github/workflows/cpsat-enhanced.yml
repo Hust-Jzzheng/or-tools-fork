@@ -5,6 +5,10 @@ on:
     branches:
       - cpsat-enhanced-v9.15
 
+concurrency:
+  group: cpsat-enhanced-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   all_different_test:
     runs-on: ubuntu-latest
@@ -20,6 +24,7 @@ jobs:
       - name: Validate MiniZinc benchmark harness
         run: |
           python3 -m py_compile benchmarks/minizinc2026/run_benchmark.py
+          python3 -m py_compile benchmarks/minizinc2026/compare_results.py
           bash -n benchmarks/minizinc2026/build_solver.sh
           bash -n benchmarks/minizinc2026/build_both.sh
           python3 - <<'PY'
