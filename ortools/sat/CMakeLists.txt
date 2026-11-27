@@ -74,6 +74,17 @@ if(BUILD_TESTING)
   target_compile_features(sat_sat_solver_clause_cleanup_test PRIVATE cxx_std_17)
   target_link_libraries(sat_sat_solver_clause_cleanup_test PRIVATE
     GTest::gtest_main)
+  include(GNUInstallDirs)
+  if(APPLE)
+    set_target_properties(sat_sat_solver_clause_cleanup_test PROPERTIES
+      INSTALL_RPATH "@loader_path/../${CMAKE_INSTALL_LIBDIR};@loader_path")
+  elseif(UNIX)
+    cmake_path(RELATIVE_PATH CMAKE_INSTALL_FULL_LIBDIR
+      BASE_DIRECTORY ${CMAKE_INSTALL_FULL_BINDIR}
+      OUTPUT_VARIABLE libdir_relative_path)
+    set_target_properties(sat_sat_solver_clause_cleanup_test PROPERTIES
+      INSTALL_RPATH "$ORIGIN/${libdir_relative_path}:$ORIGIN")
+  endif()
   add_test(
     NAME cxx_sat_sat_solver_clause_cleanup_test
     COMMAND sat_sat_solver_clause_cleanup_test
