@@ -278,6 +278,10 @@ TEST(GeneratorTest, AdaptiveDeterministicLimit) {
   var->add_domain(0);
   var->add_domain(1);
 
+  Model model;
+  const CpSolverResponse solution = SolveCpModel(proto, &model);
+  EXPECT_EQ(solution.status(), CpSolverStatus::OPTIMAL);
+
   SatParameters params;
   params.set_lns_initial_deterministic_limit(1.0);
   Model main_model;
