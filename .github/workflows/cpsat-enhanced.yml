@@ -57,11 +57,13 @@ jobs:
 
   minizinc_2026_smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     container:
       image: minizinc/mznc2026:latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Install build dependencies
         run: |
           apt-get update
@@ -71,33 +73,51 @@ jobs:
           curl -fsSL -o /tmp/bazel-bin https://github.com/bazelbuild/bazel/releases/download/8.5.0/bazel-8.5.0-linux-x86_64
           install -m 0755 /tmp/bazel-bin /usr/local/bin/bazel
           bazel version
-      - name: Build FlatZinc CP-SAT
-        run: bazel build --compilation_mode=opt //ortools/flatzinc:fz
+      - name: Build enhanced FlatZinc CP-SAT
+        run: |
+          bazel build --compilation_mode=opt //ortools/flatzinc:fz
+          cp bazel-bin/ortools/flatzinc/fz /tmp/fz-cpsat-enhanced-v9.15
+      - name: Fetch and build official v9.15 baseline
+        run: |
+          git fetch --tags origin v9.15
+          git worktree add --detach /tmp/or-tools-v9.15 v9.15
+          cd /tmp/or-tools-v9.15
+          bazel build --compilation_mode=opt //ortools/flatzinc:fz
+          cp bazel-bin/ortools/flatzinc/fz /tmp/fz-v9.15
       - name: Fetch pinned MiniZinc 2026 archive
         run: |
           git clone --filter=blob:none --no-checkout https://github.com/MiniZinc/mzn-challenge.git /tmp/mzn-challenge
           git -C /tmp/mzn-challenge checkout 7639931e89b6b8bba48ef129d52fba866bc36702
-      - name: Run one 12-worker smoke instance
+      - name: Run baseline on representative instances
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/benchmark-results/minizinc2026"
+          python3 benchmarks/minizinc2026/run_benchmark.py \
+            --dataset-root /tmp/mzn-challenge \
+            --repo-root /tmp/or-tools-v9.15 \
+            --fz-bin /tmp/fz-v9.15 \
+            --results-dir "$GITHUB_WORKSPACE/benchmark-results/minizinc2026/baseline" \
+            --threads 12 --time-limit 30 --seed 1 \
+            --instances nonogram/easy_01.json,surface-based-tsp/burma14.dzn,vrplc/vrplc9_5_20_s2.dzn
+      - name: Run enhanced on the same instances
         run: |
           python3 benchmarks/minizinc2026/run_benchmark.py \
             --dataset-root /tmp/mzn-challenge \
             --repo-root "$GITHUB_WORKSPACE" \
-            --fz-bin "$GITHUB_WORKSPACE/bazel-bin/ortools/flatzinc/fz" \
-            --results-dir /tmp/minizinc2026-smoke \
+            --fz-bin /tmp/fz-cpsat-enhanced-v9.15 \
+            --results-dir "$GITHUB_WORKSPACE/benchmark-results/minizinc2026/enhanced" \
             --threads 12 --time-limit 30 --seed 1 \
-            --instances nonogram/easy_01.json --limit 1
-          python3 - <<'PY'
-          import json
-          from pathlib import Path
-          result_path = Path("/tmp/minizinc2026-smoke/nonogram__easy_01.json/result.json")
-          result = json.loads(result_path.read_text())
-          if result["status"] not in {"FEASIBLE", "OPTIMAL"} or not result["has_solution"]:
-              stdout = Path(result["stdout_log"]).read_text(errors="replace")
-              stderr = Path(result["stderr_log"]).read_text(errors="replace")
-              raise SystemExit(
-                  f"MiniZinc smoke did not find a solution: {result['status']}\n"
-                  f"--- stdout ---\n{stdout}\n--- stderr ---\n{stderr}"
-              )
-          print(f"MiniZinc 2026 smoke solved: {result['instance_id']} in "
-                f"{result['wall_time_seconds']}s")
-          PY
+            --instances nonogram/easy_01.json,surface-based-tsp/burma14.dzn,vrplc/vrplc9_5_20_s2.dzn
+      - name: Compare baseline and enhanced
+        run: |
+          python3 benchmarks/minizinc2026/compare_results.py \
+            --baseline "$GITHUB_WORKSPACE/benchmark-results/minizinc2026/baseline/summary.csv" \
+            --enhanced "$GITHUB_WORKSPACE/benchmark-results/minizinc2026/enhanced/summary.csv" \
+            --output "$GITHUB_WORKSPACE/benchmark-results/minizinc2026/comparison.csv"
+          cat "$GITHUB_WORKSPACE/benchmark-results/minizinc2026/comparison.csv"
+      - name: Upload comparative smoke results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: minizinc-2026-comparative-smoke
+          path: benchmark-results/minizinc2026/
+          if-no-files-found: warn
