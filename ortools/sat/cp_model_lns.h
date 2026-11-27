@@ -391,8 +391,9 @@ class NeighborhoodGenerator {
                         NeighborhoodGeneratorHelper const* helper)
       : name_(name),
         helper_(*helper),
-        deterministic_limit_(
+        initial_deterministic_limit_(
             helper->Parameters().lns_initial_deterministic_limit()),
+        deterministic_limit_(initial_deterministic_limit_),
         difficulty_(helper->Parameters().lns_initial_difficulty()) {}
   virtual ~NeighborhoodGenerator() = default;
 
@@ -523,6 +524,7 @@ class NeighborhoodGenerator {
  protected:
   const std::string name_;
   const NeighborhoodGeneratorHelper& helper_;
+  const double initial_deterministic_limit_;
   mutable absl::Mutex generator_mutex_;
   double deterministic_limit_ = 0.1;
 

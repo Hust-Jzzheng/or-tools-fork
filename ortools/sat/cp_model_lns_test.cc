@@ -272,6 +272,50 @@ TEST(GeneratorTest, UCBScore) {
   EXPECT_NEAR(5.8255, generator.GetUCBScore(/*total_num_calls=*/200), 1e-4);
 }
 
+TEST(GeneratorTest, AdaptiveDeterministicLimit) {
+  CpModelProto proto;
+  IntegerVariableProto* var = proto.add_variables();
+  var->add_domain(0);
+  var->add_domain(1);
+
+  SatParameters params;
+  params.set_lns_initial_deterministic_limit(1.0);
+  Model main_model;
+  auto* shared_response_manager =
+      main_model.GetOrCreate<SharedResponseManager>();
+  ModelSharedTimeLimit time_limit(&main_model);
+  NeighborhoodGeneratorHelper helper(&proto, &params, shared_response_manager,
+                                     &time_limit);
+  RelaxRandomVariablesGenerator generator(&helper, "test");
+  EXPECT_DOUBLE_EQ(generator.deterministic_limit(), 1.0);
+
+  // Repeated non-improving neighborhoods gradually increase the budget.
+  for (int i = 0; i < 501; ++i) {
+    NeighborhoodGenerator::SolveData data;
+    data.status = CpSolverStatus::UNKNOWN;
+    data.initial_best_objective = IntegerValue(55);
+    data.new_objective = IntegerValue(55);
+    generator.AddSolveData(data);
+  }
+  generator.Synchronize();
+  const double enlarged_limit = generator.deterministic_limit();
+  EXPECT_GT(enlarged_limit, 1.0);
+  EXPECT_EQ(generator.num_consecutive_non_improving_calls(), 501);
+
+  // A successful neighborhood reduces the budget, but never below the
+  // configured initial limit.
+  NeighborhoodGenerator::SolveData improving_data;
+  improving_data.status = CpSolverStatus::UNKNOWN;
+  improving_data.initial_best_objective = IntegerValue(55);
+  improving_data.new_objective = IntegerValue(54);
+  generator.AddSolveData(improving_data);
+  generator.Synchronize();
+
+  EXPECT_LT(generator.deterministic_limit(), enlarged_limit);
+  EXPECT_GE(generator.deterministic_limit(), 1.0);
+  EXPECT_EQ(generator.num_consecutive_non_improving_calls(), 0);
+}
+
 TEST(RelaxationInducedNeighborhoodGeneratorTest, NoNeighborhoodGeneratedRINS) {
   CpModelProto proto;
   IntegerVariableProto* var = proto.add_variables();
