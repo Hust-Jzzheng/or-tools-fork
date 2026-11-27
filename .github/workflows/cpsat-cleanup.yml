@@ -1,0 +1,40 @@
+name: CP-SAT learned clause cleanup
+
+on:
+  push:
+    branches:
+      - cpsat-minizinc2026-research
+
+jobs:
+  clause-cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install CMake build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build
+      - name: Configure CMake with focused dependencies
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_DEPS=ON \
+            -DBUILD_TESTING=ON \
+            -DBUILD_CXX=ON \
+            -DBUILD_PYTHON=OFF \
+            -DBUILD_JAVA=OFF \
+            -DBUILD_DOTNET=OFF \
+            -DBUILD_SAMPLES=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DUSE_SCIP=OFF \
+            -DUSE_COINOR=OFF \
+            -DUSE_HIGHS=OFF
+      - name: Build CP-SAT implementation and focused unit test
+        run: |
+          cmake --build build --parallel 4 --target \
+            ortools_sat \
+            sat_sat_solver_clause_cleanup_test
+      - name: Run focused clause cleanup test
+        run: |
+          ctest --test-dir build --output-on-failure \
+            -R '^cxx_sat_sat_solver_clause_cleanup_test$'

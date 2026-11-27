@@ -47,6 +47,7 @@ target_link_libraries(${NAME} PRIVATE
 
 if(BUILD_TESTING)
   file(GLOB _TEST_SRCS "*_test.cc")
+  list(FILTER _TEST_SRCS EXCLUDE REGEX ".*/sat_solver_clause_cleanup_test\\.cc$")
   foreach(_FULL_FILE_NAME IN LISTS _TEST_SRCS)
     get_filename_component(_NAME ${_FULL_FILE_NAME} NAME_WE)
     get_filename_component(_FILE_NAME ${_FULL_FILE_NAME} NAME)
@@ -61,6 +62,33 @@ if(BUILD_TESTING)
         GTest::gtest_main
     )
   endforeach()
+
+  # This helper test is intentionally standalone: it validates the generic
+  # selection routine without linking the full OR-Tools library. The SAT
+  # object library is built separately in the focused CI workflow.
+  add_executable(sat_sat_solver_clause_cleanup_test
+    sat_solver_clause_cleanup_test.cc)
+  target_include_directories(sat_sat_solver_clause_cleanup_test PRIVATE
+    ${PROJECT_SOURCE_DIR}
+    ${PROJECT_BINARY_DIR})
+  target_compile_features(sat_sat_solver_clause_cleanup_test PRIVATE cxx_std_17)
+  target_link_libraries(sat_sat_solver_clause_cleanup_test PRIVATE
+    GTest::gtest_main)
+  include(GNUInstallDirs)
+  if(APPLE)
+    set_target_properties(sat_sat_solver_clause_cleanup_test PROPERTIES
+      INSTALL_RPATH "@loader_path/../${CMAKE_INSTALL_LIBDIR};@loader_path")
+  elseif(UNIX)
+    cmake_path(RELATIVE_PATH CMAKE_INSTALL_FULL_LIBDIR
+      BASE_DIRECTORY ${CMAKE_INSTALL_FULL_BINDIR}
+      OUTPUT_VARIABLE libdir_relative_path)
+    set_target_properties(sat_sat_solver_clause_cleanup_test PROPERTIES
+      INSTALL_RPATH "$ORIGIN/${libdir_relative_path}:$ORIGIN")
+  endif()
+  add_test(
+    NAME cxx_sat_sat_solver_clause_cleanup_test
+    COMMAND sat_sat_solver_clause_cleanup_test
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
   # These tests are too long so we disable them.
   set_tests_properties(
