@@ -63,8 +63,10 @@ int SelectLearnedClausesToDelete(std::vector<Entry>* entries,
         }
         return entry.second.lbd > threshold_lbd;
       };
+  // nth_element guarantees that no element after nth is strictly worse
+  // than the threshold, so partitioning the prefix is sufficient.
   const auto first_kept = std::partition(
-      entries->begin(), entries->end(), strictly_worse_than_threshold);
+      entries->begin(), nth, strictly_worse_than_threshold);
   return static_cast<int>(first_kept - entries->begin());
 }
 
