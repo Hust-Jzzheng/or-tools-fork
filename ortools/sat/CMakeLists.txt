@@ -63,8 +63,6 @@ if(BUILD_TESTING)
     )
   endforeach()
 
-  endforeach()
-
   # This helper test is intentionally standalone: it validates the generic
   # selection routine without linking the full OR-Tools library. The SAT
   # object library is built separately in the focused CI workflow.
