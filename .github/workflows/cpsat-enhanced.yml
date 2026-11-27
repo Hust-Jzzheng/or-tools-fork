@@ -25,6 +25,7 @@ jobs:
         run: |
           python3 -m py_compile benchmarks/minizinc2026/run_benchmark.py
           python3 -m py_compile benchmarks/minizinc2026/compare_results.py
+          python3 -m unittest discover -s benchmarks/minizinc2026 -p 'test_*.py' -v
           bash -n benchmarks/minizinc2026/build_solver.sh
           bash -n benchmarks/minizinc2026/build_both.sh
           python3 - <<'PY'

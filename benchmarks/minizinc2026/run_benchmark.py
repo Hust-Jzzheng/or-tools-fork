@@ -36,20 +36,29 @@ def parse_stats(output: str) -> dict[str, str]:
 
 
 def classify(output: str, return_code: int, timed_out: bool) -> tuple[str, bool]:
-    has_solution = "----------" in output or "=====SATISFIABLE=====" in output or "=====OPTIMAL=====" in output
+    has_solution = (
+        "----------" in output
+        or "=====SATISFIABLE=====" in output
+        or "=====OPTIMAL=====" in output
+    )
     if "=====OPTIMAL=====" in output:
-        return "OPTIMAL", has_solution
+        return "OPTIMAL", True
     if "=====UNSATISFIABLE=====" in output:
         return "UNSAT", False
     if "=====SATISFIABLE=====" in output:
         return "FEASIBLE", True
     if timed_out:
         return "TIMEOUT", has_solution
-    if "=====UNKNOWN=====" in output:
-        return "UNKNOWN", has_solution
     if "=====ERROR=====" in output or return_code != 0:
         return "ERROR", has_solution
-    return "UNKNOWN", has_solution
+    # With MiniZinc's -i option, FlatZinc may print one or more solutions
+    # followed by the standard separator but no final SATISFIABLE marker.
+    # Such a clean process exit is a feasible result, not UNKNOWN.
+    if has_solution:
+        return "FEASIBLE", True
+    if "=====UNKNOWN=====" in output:
+        return "UNKNOWN", False
+    return "UNKNOWN", False
 
 
 def terminate_process_group(proc: subprocess.Popen[str]) -> None:
