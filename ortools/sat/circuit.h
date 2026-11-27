@@ -150,15 +150,22 @@ class NoCyclePropagator : PropagatorInterface, ReversibleInterface {
   std::vector<Literal> watch_index_to_literal_;
   std::vector<std::vector<std::pair<int, int>>> watch_index_to_arcs_;
 
-  // This will only contains the subgraph with all the arc at true.
-  // We maintain it incrementally and update this on SetLevel()/Propagate().
+  // This contains only arcs whose literals are true. It is maintained
+  // incrementally and updated on SetLevel()/IncrementalPropagate().
   std::vector<std::vector<int>> graph_;
   std::vector<std::vector<Literal>> graph_literals_;
 
-  // For now we redo a strongly connected component on the graph formed of arcs
-  // at one.
-  //
-  // TODO(user): code a true algo.
+  // Nodes with at least one active outgoing arc. The ordered set preserves
+  // the original node traversal order while avoiding a full num_nodes scan.
+  absl::btree_set<int> active_nodes_set_;
+  std::vector<int> active_nodes_;
+  std::vector<int> node_to_active_index_;
+
+  // Compressed graph over active_nodes_. Its capacity is reused across calls.
+  std::vector<std::vector<int>> active_graph_;
+
+  // SCC is still recomputed, but only on the compressed active graph. Reuse
+  // the finder scratch vectors across calls.
   std::vector<std::vector<int>> components_;
   StronglyConnectedComponentsFinder<int, std::vector<std::vector<int>>,
                                     std::vector<std::vector<int>>>

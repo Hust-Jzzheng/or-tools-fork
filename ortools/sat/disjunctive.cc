@@ -535,14 +535,10 @@ bool DisjunctiveOverloadChecker::Propagate() {
         return false;
       }
 
-      // TODO(user): Shall we keep propagating? we know the prefix didn't
-      // change, so we could be faster here. On another hand, it might be
-      // better to propagate all the linear constraints before returning
-      // here.
+      // The precedence literal does not change interval bounds until the
+      // linear propagator runs. Keep scanning this unchanged prefix so we can
+      // batch several detectable precedences in one watcher call.
       ++stats_.num_propagations;
-
-      stats_.EndWithoutConflicts();
-      return true;
     }
 
     // Note that we need to do that AFTER the block above.

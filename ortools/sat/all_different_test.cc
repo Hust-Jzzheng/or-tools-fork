@@ -128,6 +128,48 @@ TEST_P(AllDifferentTest, EnumerateAllPermutations) {
   }
 }
 
+// Repeatedly exclude solutions and backtrack to the root. This exercises
+// reuse and repair of the AllDifferentAC matching across changing domains.
+TEST(AllDifferentACTest, MatchingSurvivesBacktracking) {
+  const std::vector<std::vector<int64_t>> domains = {
+      {0, 1, 2}, {0, 1, 2}, {1, 2, 3}, {2, 3, 4}, {3, 4, 5}};
+  Model model;
+  IntegerTrail* integer_trail = model.GetOrCreate<IntegerTrail>();
+  std::vector<IntegerVariable> vars;
+  for (const auto& values : domains) {
+    vars.push_back(model.Add(NewIntegerVariable(0, 5)));
+    integer_trail->UpdateInitialDomain(vars.back(), Domain::FromValues(values));
+  }
+  model.Add(AllDifferentBinary(vars));
+  model.Add(AllDifferentAC(vars));
+
+  int expected_num_solutions = 0;
+  std::vector<bool> used(6, false);
+  std::function<void(int)> count_solutions = [&](int index) {
+    if (index == static_cast<int>(domains.size())) {
+      ++expected_num_solutions;
+      return;
+    }
+    for (const int64_t value : domains[index]) {
+      if (used[static_cast<int>(value)]) continue;
+      used[static_cast<int>(value)] = true;
+      count_solutions(index + 1);
+      used[static_cast<int>(value)] = false;
+    }
+  };
+  count_solutions(0);
+  EXPECT_EQ(26, expected_num_solutions);
+
+  int actual_num_solutions = 0;
+  while (true) {
+    const auto status = SolveIntegerProblemWithLazyEncoding(&model);
+    if (status != SatSolver::Status::FEASIBLE) break;
+    ++actual_num_solutions;
+    model.Add(ExcludeCurrentSolutionAndBacktrack());
+  }
+  EXPECT_EQ(expected_num_solutions, actual_num_solutions);
+}
+
 int Factorial(int n) { return n ? n * Factorial(n - 1) : 1; }
 
 TEST_P(AllDifferentTest, EnumerateAllInjections) {

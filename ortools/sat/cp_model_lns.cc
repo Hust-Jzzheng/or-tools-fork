@@ -1286,6 +1286,11 @@ absl::Span<const double> NeighborhoodGenerator::Synchronize() {
     if (best_objective_improvement > 0) {
       num_consecutive_non_improving_calls_ = 0;
       next_time_limit_bump_ = 50;
+      // A successful neighborhood means the enlarged budget is no longer
+      // needed for every subsequent attempt. Gradually shrink it toward the
+      // configured baseline, complementing the 2% increase after long stalls.
+      deterministic_limit_ =
+          std::max(initial_deterministic_limit_, deterministic_limit_ * 0.98);
     } else {
       ++num_consecutive_non_improving_calls_;
     }

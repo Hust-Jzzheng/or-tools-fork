@@ -3051,47 +3051,44 @@ void SatSolver::CleanClauseDatabaseIfNeeded() {
   const int num_protected_clauses =
       clauses_propagator_->num_removable_clauses() - entries.size();
 
-  if (parameters_->clause_cleanup_ordering() == SatParameters::CLAUSE_LBD) {
-    // Order the clauses by decreasing LBD and then increasing activity.
-    std::sort(entries.begin(), entries.end(),
-              [](const Entry& a, const Entry& b) {
-                if (a.second.lbd == b.second.lbd) {
-                  return a.second.activity < b.second.activity;
-                }
-                return a.second.lbd > b.second.lbd;
-              });
-  } else {
-    // Order the clauses by increasing activity and then decreasing LBD.
-    std::sort(entries.begin(), entries.end(),
-              [](const Entry& a, const Entry& b) {
-                if (a.second.activity == b.second.activity) {
-                  return a.second.lbd > b.second.lbd;
-                }
-                return a.second.activity < b.second.activity;
-              });
-  }
+  // Define the same "worse than" ordering as the full sort below, but only
+  // select the deletion boundary. This avoids sorting every removable clause.
+  const auto is_worse = [&](const Entry& a, const Entry& b) {
+    if (parameters_->clause_cleanup_ordering() == SatParameters::CLAUSE_LBD) {
+      // Higher LBD is worse; for equal LBD, lower activity is worse.
+      if (a.second.lbd == b.second.lbd) {
+        return a.second.activity < b.second.activity;
+      }
+      return a.second.lbd > b.second.lbd;
+    }
+    // Lower activity is worse; for equal activity, higher LBD is worse.
+    if (a.second.activity == b.second.activity) {
+      return a.second.lbd > b.second.lbd;
+    }
+    return a.second.activity < b.second.activity;
+  };
 
-  // The clause we want to keep are at the end of the vector.
   int num_kept_clauses =
       (parameters_->clause_cleanup_target() > 0)
           ? std::min(static_cast<int>(entries.size()),
                      parameters_->clause_cleanup_target())
           : static_cast<int>(parameters_->clause_cleanup_ratio() *
                              static_cast<double>(entries.size()));
-
   int num_deleted_clauses = entries.size() - num_kept_clauses;
 
-  // Tricky: Because the order of the clauses_info iteration is NOT
-  // deterministic (pointer keys), we also keep all the clauses which have the
-  // same LBD and activity as the last one so the behavior is deterministic.
-  if (num_kept_clauses > 0) {
-    while (num_deleted_clauses > 0) {
-      const ClauseInfo& a = entries[num_deleted_clauses].second;
-      const ClauseInfo& b = entries[num_deleted_clauses - 1].second;
-      if (a.activity != b.activity || a.lbd != b.lbd) break;
-      --num_deleted_clauses;
-      ++num_kept_clauses;
-    }
+  // Keep the full tie group at the boundary, as the previous sorted version
+  // did. This makes the deletion set independent of hash-map iteration order.
+  // nth_element finds the boundary in average linear time; partition then puts
+  // only strictly worse clauses in the deletion prefix.
+  if (num_deleted_clauses > 0 && num_kept_clauses > 0) {
+    std::nth_element(entries.begin(), entries.begin() + num_deleted_clauses,
+                     entries.end(), is_worse);
+    const Entry boundary = entries[num_deleted_clauses];
+    const auto first_kept = std::partition(
+        entries.begin(), entries.end(),
+        [&](const Entry& entry) { return is_worse(entry, boundary); });
+    num_deleted_clauses = first_kept - entries.begin();
+    num_kept_clauses = entries.size() - num_deleted_clauses;
   }
   if (num_deleted_clauses > 0) {
     entries.resize(num_deleted_clauses);

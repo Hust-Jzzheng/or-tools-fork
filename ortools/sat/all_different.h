@@ -114,8 +114,10 @@ class AllDifferentConstraint : PropagatorInterface {
   std::vector<bool> value_visited_;
   std::vector<bool> variable_visited_;
   std::vector<int> value_to_variable_;
+  // Persistent matching for the current domains. This is not trailed: when
+  // the solver backtracks, domains only expand, so retained matching edges
+  // remain valid.
   std::vector<int> variable_to_value_;
-  std::vector<int> prev_matching_;
   std::vector<int> visiting_;
   std::vector<int> variable_visited_from_;
 

@@ -157,6 +157,7 @@ AllDifferentConstraint::AllDifferentConstraint(
         });
   }
 
+  value_to_variable_.assign(num_values_, -1);
   variable_to_value_.assign(num_variables_, -1);
   visiting_.resize(num_variables_);
   variable_visited_from_.resize(num_variables_);
@@ -178,6 +179,7 @@ AllDifferentConstraint::AllDifferentConstraint(
     variable_to_possible_values_[tails[a]].push_back({heads[a], literals[a]});
   }
 
+  value_to_variable_.assign(num_values_, -1);
   variable_to_value_.assign(num_variables_, -1);
   visiting_.resize(num_variables_);
   variable_visited_from_.resize(num_variables_);
@@ -250,43 +252,48 @@ bool AllDifferentConstraint::MakeAugmentingPath(int start) {
 // with |variables| < |values|; filtering is explained by the Hall set that
 // would happen if the variable was assigned to the value.
 //
-// TODO(user): If needed, there are several ways performance could be
-// improved.
-// If copying the variable state is too costly, it could be maintained instead.
-// If the propagator has too many fruitless calls (without failing/pruning),
-// we can remember the O(n) arcs used in the matching and the SCC decomposition,
-// and guard calls to Propagate() if these arcs are still valid.
+// TODO(user): If the propagator has too many fruitless calls (without failing
+// or pruning), remember the O(n) arcs used in the matching and SCC decomposition
+// and skip Propagate() when those arcs are still valid.
 bool AllDifferentConstraint::Propagate() {
-  // Copy variable state to graph state.
-  prev_matching_ = variable_to_value_;
-  value_to_variable_.assign(num_values_, -1);
-  variable_to_value_.assign(num_variables_, -1);
   successor_.clear();
   const auto assignment = AssignmentView(trail_->Assignment());
+
+  // Rebuild the current adjacency lists, but retain every matching edge that
+  // is still present in the current domains. A matching edge can only become
+  // invalid when its literal becomes false.
   for (int x = 0; x < num_variables_; x++) {
     successor_.Add({});
+    const int matched_value = variable_to_value_[x];
+    if (matched_value != -1) {
+      DCHECK_EQ(value_to_variable_[matched_value], x);
+    }
+    bool matched_edge_is_valid = false;
     for (const auto [value, lit] : variable_to_possible_values_[x]) {
       if (assignment.LiteralIsFalse(lit)) continue;
 
       // Forward-checking should propagate x != value.
       successor_.AppendToLastVector(value);
-
-      // Seed with previous matching.
-      if (prev_matching_[x] == value && value_to_variable_[value] == -1) {
-        variable_to_value_[x] = prev_matching_[x];
-        value_to_variable_[prev_matching_[x]] = x;
-      }
+      if (value == matched_value) matched_edge_is_valid = true;
     }
-    if (successor_[x].size() == 1) {
-      const int value = successor_[x][0];
-      if (value_to_variable_[value] == -1) {
-        value_to_variable_[value] = x;
-        variable_to_value_[x] = value;
-      }
+
+    if (matched_value != -1 && !matched_edge_is_valid) {
+      value_to_variable_[matched_value] = -1;
+      variable_to_value_[x] = -1;
     }
   }
 
-  // Compute max matching.
+  // Prefer singleton domains when their value is not already matched.
+  for (int x = 0; x < num_variables_; x++) {
+    if (variable_to_value_[x] != -1 || successor_[x].size() != 1) continue;
+    const int value = successor_[x][0];
+    if (value_to_variable_[value] == -1) {
+      value_to_variable_[value] = x;
+      variable_to_value_[x] = value;
+    }
+  }
+
+  // Repair the retained matching into a maximum matching.
   int x = 0;
   for (; x < num_variables_; x++) {
     if (variable_to_value_[x] == -1) {
@@ -390,7 +397,8 @@ bool AllDifferentConstraint::Propagate() {
         value_to_variable_[value] = x;
 
         value_visited_[value] = true;
-        MakeAugmentingPath(old_variable);
+        const bool has_augmenting_path = MakeAugmentingPath(old_variable);
+        DCHECK(!has_augmenting_path);
         DCHECK_EQ(variable_to_value_[old_variable], -1);  // No reassignment.
 
         std::vector<Literal>* reason = trail_->GetEmptyVectorToStoreReason();
@@ -403,6 +411,14 @@ bool AllDifferentConstraint::Propagate() {
             }
           }
         }
+
+        // The failed what-if search leaves only the temporary reassignment
+        // above in the matching. Restore the persistent matching before
+        // returning, since it will be reused by the next propagation call.
+        variable_to_value_[x] = old_value;
+        value_to_variable_[old_value] = x;
+        variable_to_value_[old_variable] = value;
+        value_to_variable_[value] = old_variable;
 
         return trail_->EnqueueWithStoredReason(kNoClauseId, x_lit.Negated());
       }

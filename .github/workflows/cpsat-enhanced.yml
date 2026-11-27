@@ -1,0 +1,122 @@
+name: CP-SAT kernel regression and MiniZinc smoke
+
+on:
+  push:
+    branches:
+      - cpsat-enhanced-v9.15
+
+concurrency:
+  group: cpsat-enhanced-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  all_different_test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned Bazel 8.5.0
+        run: |
+          curl -fsSL -o /tmp/bazel-bin https://github.com/bazelbuild/bazel/releases/download/8.5.0/bazel-8.5.0-linux-x86_64
+          sudo install -m 0755 /tmp/bazel-bin /usr/local/bin/bazel
+      - name: Validate MiniZinc benchmark harness
+        run: |
+          python3 -m py_compile benchmarks/minizinc2026/run_benchmark.py
+          python3 -m py_compile benchmarks/minizinc2026/compare_results.py
+          python3 -m unittest discover -s benchmarks/minizinc2026 -p 'test_*.py' -v
+          bash -n benchmarks/minizinc2026/build_solver.sh
+          bash -n benchmarks/minizinc2026/build_both.sh
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          manifest = json.loads(Path("benchmarks/minizinc2026/manifest.json").read_text())
+          assert manifest["dataset"]["model_count"] == 20
+          assert manifest["dataset"]["instance_count"] == 100
+          assert len(manifest["instances"]) == 100
+          assert manifest["dataset"]["data_files"] == {"dzn": 70, "json": 30}
+          assert len({item["id"] for item in manifest["instances"]}) == 100
+          assert len({item["model"] for item in manifest["instances"]}) == 20
+          print("MiniZinc 2026 manifest validated: 20 models / 100 instances")
+          PY
+      - name: Check Bazel
+        run: bazel version
+      - name: Run SAT and CP-SAT regression tests
+        run: |
+          bazel --output_user_root=/tmp/bazel-root test --config=ci \
+            //ortools/sat:all_different_test \
+            //ortools/sat:clause_test \
+            //ortools/sat:sat_inprocessing_test \
+            //ortools/sat:cp_model_solver_test \
+            //ortools/sat:disjunctive_test \
+            //ortools/sat:cumulative_test \
+            //ortools/sat:scheduling_helpers_test \
+            //ortools/sat:circuit_test \
+            //ortools/sat:cp_model_lns_test
+
+  minizinc_2026_smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    container:
+      image: minizinc/mznc2026:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential ca-certificates curl git python3 unzip
+      - name: Install pinned Bazel 8.5.0
+        run: |
+          curl -fsSL -o /tmp/bazel-bin https://github.com/bazelbuild/bazel/releases/download/8.5.0/bazel-8.5.0-linux-x86_64
+          install -m 0755 /tmp/bazel-bin /usr/local/bin/bazel
+          bazel version
+      - name: Build enhanced FlatZinc CP-SAT
+        run: |
+          bazel build --compilation_mode=opt //ortools/flatzinc:fz
+          cp bazel-bin/ortools/flatzinc/fz /tmp/fz-cpsat-enhanced-v9.15
+      - name: Fetch and build official v9.15 baseline
+        run: |
+          git fetch --depth=1 origin refs/tags/v9.15:refs/tags/v9.15
+          git worktree add --detach /tmp/or-tools-v9.15 v9.15
+          cd /tmp/or-tools-v9.15
+          bazel build --compilation_mode=opt //ortools/flatzinc:fz
+          cp bazel-bin/ortools/flatzinc/fz /tmp/fz-v9.15
+      - name: Fetch pinned MiniZinc 2026 archive
+        run: |
+          git clone --filter=blob:none --no-checkout https://github.com/MiniZinc/mzn-challenge.git /tmp/mzn-challenge
+          git -C /tmp/mzn-challenge checkout 7639931e89b6b8bba48ef129d52fba866bc36702
+      - name: Run baseline on representative instances
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/benchmark-results/minizinc2026"
+          python3 benchmarks/minizinc2026/run_benchmark.py \
+            --dataset-root /tmp/mzn-challenge \
+            --repo-root /tmp/or-tools-v9.15 \
+            --fz-bin /tmp/fz-v9.15 \
+            --results-dir "$GITHUB_WORKSPACE/benchmark-results/minizinc2026/baseline" \
+            --threads 12 --time-limit 30 --seed 1 \
+            --solver-name "OR-Tools CP-SAT v9.15" --solver-version "9.15" \
+            --instances nonogram/easy_01.json,surface-based-tsp/burma14.dzn,vrplc/vrplc9_5_20_s2.dzn
+      - name: Run enhanced on the same instances
+        run: |
+          python3 benchmarks/minizinc2026/run_benchmark.py \
+            --dataset-root /tmp/mzn-challenge \
+            --repo-root "$GITHUB_WORKSPACE" \
+            --fz-bin /tmp/fz-cpsat-enhanced-v9.15 \
+            --results-dir "$GITHUB_WORKSPACE/benchmark-results/minizinc2026/enhanced" \
+            --threads 12 --time-limit 30 --seed 1 \
+            --instances nonogram/easy_01.json,surface-based-tsp/burma14.dzn,vrplc/vrplc9_5_20_s2.dzn
+      - name: Compare baseline and enhanced
+        run: |
+          python3 benchmarks/minizinc2026/compare_results.py \
+            --baseline "$GITHUB_WORKSPACE/benchmark-results/minizinc2026/baseline/summary.csv" \
+            --enhanced "$GITHUB_WORKSPACE/benchmark-results/minizinc2026/enhanced/summary.csv" \
+            --output "$GITHUB_WORKSPACE/benchmark-results/minizinc2026/comparison.csv"
+          cat "$GITHUB_WORKSPACE/benchmark-results/minizinc2026/comparison.csv"
+      - name: Upload comparative smoke results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: minizinc-2026-comparative-smoke
+          path: benchmark-results/minizinc2026/
+          if-no-files-found: warn
