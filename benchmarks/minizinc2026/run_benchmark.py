@@ -86,7 +86,8 @@ def terminate_process_group(proc: subprocess.Popen[str]) -> None:
 def run_one(item: dict[str, str], dataset_root: Path, minizinc: str,
             minizinc_version: str, dataset_commit: str,
             solver_binary_sha256: str, env: dict[str, str], output_dir: Path,
-            threads: int, time_limit: int, seed: int, resume: bool) -> dict[str, Any]:
+            threads: int, time_limit: int, seed: int, resume: bool,
+            solver_name: str, solver_version: str) -> dict[str, Any]:
     instance_id = item["id"]
     safe_id = instance_id.replace("/", "__").replace("\\", "__")
     instance_dir = output_dir / safe_id
@@ -148,7 +149,9 @@ def run_one(item: dict[str, str], dataset_root: Path, minizinc: str,
     stats = parse_stats(stdout + "\n" + stderr)
     result: dict[str, Any] = {
         "complete": True, "instance_id": instance_id, "model": item["model"],
-        "data": item["data"], "threads": threads, "time_limit_seconds": time_limit,
+        "data": item["data"], "solver_name": solver_name,
+        "solver_version": solver_version, "threads": threads,
+        "time_limit_seconds": time_limit,
         "seed": seed, "minizinc_version": minizinc_version,
         "dataset_commit": dataset_commit,
         "solver_binary_sha256": solver_binary_sha256,
@@ -165,7 +168,8 @@ def run_one(item: dict[str, str], dataset_root: Path, minizinc: str,
 def write_summary(output_dir: Path, results: list[dict[str, Any]]) -> None:
     fields = [
         "instance_id", "status", "has_solution", "wall_time_seconds",
-        "threads", "time_limit_seconds", "seed", "return_code", "timed_out",
+        "solver_name", "solver_version", "threads", "time_limit_seconds",
+        "seed", "return_code", "timed_out",
         "flatTime", "solveTime", "objective", "objectiveBound",
         "boolVariables", "nodes", "failures", "propagations",
         "model", "data", "minizinc_version", "dataset_commit",
@@ -194,6 +198,8 @@ def main() -> int:
     parser.add_argument("--time-limit", type=int, default=1800,
                         help="Total wall-clock seconds per instance, including flattening")
     parser.add_argument("--seed", type=int, default=1)
+    parser.add_argument("--solver-name", default="OR-Tools CP-SAT Enhanced")
+    parser.add_argument("--solver-version", default="9.15-enhanced")
     parser.add_argument("--instances", default="", help="Comma-separated exact instance IDs")
     parser.add_argument("--limit", type=int, default=0, help="Run first N selected instances")
     parser.add_argument("--no-resume", action="store_true")
@@ -244,8 +250,8 @@ def main() -> int:
     solver_dir = results_dir / "solver-config"
     solver_dir.mkdir(parents=True, exist_ok=True)
     solver_config = {
-        "id": SOLVER_ID, "name": "OR-Tools CP-SAT Enhanced",
-        "version": "9.15-enhanced",
+        "id": SOLVER_ID, "name": args.solver_name,
+        "version": args.solver_version,
         "description": "OR-Tools CP-SAT FlatZinc backend built from selected source tree",
         "mznlib": str(mznlib.resolve()), "executable": str(fz_bin),
         "tags": ["cp-sat", "cp", "lcg", "int"],
@@ -306,6 +312,7 @@ def main() -> int:
             item, dataset_root, args.minizinc, minizinc_version,
             expected_dataset_commit, solver_binary_sha256, env, results_dir,
             args.threads, args.time_limit, args.seed, not args.no_resume,
+            args.solver_name, args.solver_version,
         )
         results.append(result)
         write_summary(results_dir, results)

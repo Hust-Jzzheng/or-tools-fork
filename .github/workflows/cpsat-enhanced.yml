@@ -95,6 +95,7 @@ jobs:
             --fz-bin /tmp/fz-v9.15 \
             --results-dir "$GITHUB_WORKSPACE/benchmark-results/minizinc2026/baseline" \
             --threads 12 --time-limit 30 --seed 1 \
+            --solver-name "OR-Tools CP-SAT v9.15" --solver-version "9.15" \
             --instances nonogram/easy_01.json,surface-based-tsp/burma14.dzn,vrplc/vrplc9_5_20_s2.dzn
       - name: Run enhanced on the same instances
         run: |

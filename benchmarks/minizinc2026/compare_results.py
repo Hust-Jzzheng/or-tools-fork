@@ -103,6 +103,10 @@ def main() -> int:
 
         rows.append({
             "instance_id": instance_id,
+            "baseline_solver_name": b.get("solver_name", ""),
+            "baseline_solver_version": b.get("solver_version", ""),
+            "enhanced_solver_name": e.get("solver_name", ""),
+            "enhanced_solver_version": e.get("solver_version", ""),
             "baseline_status": bt,
             "enhanced_status": et,
             "baseline_has_solution": b_feasible,
