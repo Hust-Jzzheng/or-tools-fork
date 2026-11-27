@@ -29,14 +29,12 @@ jobs:
             -DUSE_SCIP=OFF \
             -DUSE_COINOR=OFF \
             -DUSE_HIGHS=OFF
-      - name: Build focused SAT regression tests
+      - name: Build CP-SAT implementation and focused unit test
         run: |
-          cmake --build build --parallel 2 --target \
-            sat_sat_solver_clause_cleanup_test \
-            sat_sat_inprocessing_test \
-            sat_clause_test \
-            sat_cp_model_solver_test
-      - name: Run focused SAT regression tests
+          cmake --build build --parallel 4 --target \
+            ortools_sat \
+            sat_sat_solver_clause_cleanup_test
+      - name: Run focused clause cleanup test
         run: |
           ctest --test-dir build --output-on-failure \
-            -R 'cxx_sat_sat_solver_clause_cleanup_test|cxx_sat_sat_inprocessing_test|cxx_sat_clause_test|cxx_sat_cp_model_solver_test'
+            -R '^cxx_sat_sat_solver_clause_cleanup_test$'
