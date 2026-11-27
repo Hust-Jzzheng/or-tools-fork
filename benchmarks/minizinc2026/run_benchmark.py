@@ -107,6 +107,8 @@ def run_one(item: dict[str, str], dataset_root: Path, minizinc: str,
                 and previous.get("time_limit_seconds") == time_limit
                 and previous.get("seed") == seed
                 and previous.get("minizinc_version") == minizinc_version
+                and previous.get("solver_name") == solver_name
+                and previous.get("solver_version") == solver_version
             ):
                 print(f"[SKIP] {instance_id}: matching completed result exists", flush=True)
                 return previous
